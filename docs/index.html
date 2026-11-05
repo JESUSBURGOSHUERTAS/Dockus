@@ -498,17 +498,17 @@
     </header>
 
     <section class="hero">
-      <div class="hero-badge">✦ Windows 10 &amp; 11 Desktop Widget</div>
+      <div class="hero-badge">✦ Windows 10 &amp; 11 (x64) · 🐧 Próximamente en Linux</div>
       <img src="assets/logo.png" alt="Dockus Cyber Lion" class="hero-logo">
       <h1>Controla tus tokens y cuotas de IA con estilo</h1>
-      <p>Un monitor flotante translúcido para Windows diseñado con estética Aero Glass moderna, partículas de luz vivas y acople magnético a las esquinas.</p>
+      <p>Un monitor flotante translúcido para Windows diseñado con estética Aero Glass moderna, partículas de luz vivas, acople magnético y soporte multi-proveedor (Antigravity, DeepSeek, Claude, Gemini, OpenAI y Ollama).</p>
       
       <div class="hero-actions">
         <a href="https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest" class="btn-primary">
           <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
           </svg>
-          Descargar Dockus v1.0.0
+          Descargar Dockus v1.0.0 (Windows)
         </a>
         <a href="https://github.com/JESUSBURGOSHUERTAS/Dockus" class="btn-secondary">Ver Código Fuente</a>
       </div>
@@ -516,8 +516,8 @@
       <!-- Live Mockup Representation -->
       <div class="dock-showcase">
         <div class="dock-bar">
-          <div class="dock-brand">
-            <span style="color: var(--cyan);">✦</span> AGY
+          <div class="dock-brand" title="Clic para cambiar qué IA rastrear">
+            <span style="color: var(--cyan);">✦</span> AGY <span style="font-size: 10px; color: #64748B;">▾</span>
           </div>
           <div class="dock-toggle">
             <span class="toggle-pill active">⏱ 5h</span>
@@ -544,6 +544,50 @@
             <span>▼</span>
             <span>✕</span>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Supported AI Platforms Section -->
+    <section id="plataformas" class="features" style="padding-top: 30px;">
+      <h2 class="section-title">Plataformas de IA Compatibles</h2>
+      <p class="section-sub">Dockus se conecta a tu IDE local o a las APIs oficiales de los modelos de inteligencia artificial más potentes del mundo.</p>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon" style="color: #38BDF8;">✦</div>
+          <h3>Google Antigravity (IDE)</h3>
+          <p>Conexión automática por Connect-RPC local al Language Server en 127.0.0.1. Monitorea cuotas de Gemini Pro/Flash, Claude y Argon en tiempo real sin claves API.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="color: #38BDF8;">🐋</div>
+          <h3>DeepSeek Platform (V3 / R1)</h3>
+          <p>Monitoreo oficial de saldo de cuenta (USD), ventana de contexto y disponibilidad de los modelos DeepSeek-V3 y DeepSeek-R1 vía HTTPS.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="color: #C084FC;">✻</div>
+          <h3>Anthropic Claude API</h3>
+          <p>Supervisión de ventana de contexto de 200,000 tokens y disponibilidad de modelos Claude 3.5 / 3.7 Sonnet y Opus.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="color: #60A5FA;">✦</div>
+          <h3>Google AI Studio (Gemini)</h3>
+          <p>Conexión directa con modelos Gemini 1.5 y 2.0 Flash/Pro usando tu clave API gratuita con ventana de hasta 1 millón de tokens.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="color: #10B981;">⚙</div>
+          <h3>OpenAI API</h3>
+          <p>Monitoreo de tokens y cuotas oficiales de OpenAI para GPT-4o, o1, o3-mini y modelos de razonamiento avanzado.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="color: #F59E0B;">🦙</div>
+          <h3>Ollama Local</h3>
+          <p>Conexión sin claves a tu servidor local de Ollama en localhost:11434 para rastrear modelos descargados (Llama, DeepSeek, Mistral).</p>
         </div>
       </div>
     </section>
@@ -585,8 +629,14 @@
 
         <div class="feature-card">
           <div class="feature-icon">🛡️</div>
-          <h3>Código Abierto y Privacidad Total</h3>
-          <p>100% local, sin telemetría ni servidores intermedios. Licencia GNU GPLv3 para que la comunidad pueda usarlo y mejorarlo con total libertad.</p>
+          <h3>Cifrado Windows DPAPI</h3>
+          <p>Tus claves API se cifran en reposo con la Data Protection API nativa de tu usuario de Windows. Ninguna otra cuenta ni proceso puede leerlas.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🐧</div>
+          <h3>Próximamente en Linux</h3>
+          <p>Desarrollo activo multiplataforma en camino (Avalonia UI / .NET Core) para soportar distribuciones Ubuntu, Fedora, Arch y Debian.</p>
         </div>
       </div>
     </section>
@@ -615,6 +665,15 @@
           <p>Haz doble clic en <code>Iniciar-Dockus.bat</code> o directamente en <code>Dockus.exe</code>.</p>
           <pre>.\publish\Dockus.exe</pre>
         </div>
+      </div>
+
+      <!-- Linux Roadmap Banner -->
+      <div style="margin-top: 28px; text-align: center; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 12px; padding: 16px 20px;">
+        <span style="font-size: 24px;">🐧</span>
+        <h4 style="color: #F59E0B; margin: 6px 0 4px 0; font-size: 16px;">Próximamente en Linux</h4>
+        <p style="color: var(--text-muted); font-size: 13.5px; max-width: 620px; margin: 0 auto; line-height: 1.5;">
+          Estamos trabajando en la compatibilidad nativa con sistemas Linux (Ubuntu, Fedora, Arch y Debian). ¡Mantente atento a los próximos lanzamientos en GitHub!
+        </p>
       </div>
     </section>
 

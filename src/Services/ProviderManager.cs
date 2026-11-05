@@ -16,6 +16,7 @@ public class ProviderManager
         Register(new OpenAiProvider());
         Register(new ClaudeProvider());
         Register(new DeepSeekProvider());
+        Register(new OllamaProvider());
     }
 
     public void Register(ITokenProvider provider)

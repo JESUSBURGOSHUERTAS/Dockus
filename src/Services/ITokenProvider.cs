@@ -10,10 +10,10 @@ public interface ITokenProvider
     string DisplayName { get; }
     string Description { get; }
     string IconGlyph { get; }
+    string ShortCode { get; }
     string AccentColorHex { get; }
     bool IsConfigured(AppSettings settings);
 
     Task<TokenUsageSnapshot> GetUsageAsync(AppSettings settings);
     Task<List<ConversationItem>> GetRecentConversationsAsync(int count = 5);
 }
-

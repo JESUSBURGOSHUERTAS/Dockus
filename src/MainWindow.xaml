@@ -7,7 +7,7 @@
         xmlns:controls="clr-namespace:Dockus.Controls"
         mc:Ignorable="d"
         Title="Dockus - AI Quota &amp; Token Monitor"
-        Icon="assets/logo.png"
+        Icon="assets/app.ico"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -16,7 +16,7 @@
         WindowStartupLocation="Manual"
         ResizeMode="NoResize"
         SizeToContent="Height"
-        Width="390"
+        Width="400"
         Loaded="Window_Loaded"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         MouseLeftButtonUp="Window_MouseLeftButtonUp">
@@ -96,8 +96,8 @@
             <Setter Property="Foreground" Value="#94A3B8"/>
             <Setter Property="BorderBrush" Value="#1E293B"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="10,5"/>
-            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Padding" Value="8,5"/>
+            <Setter Property="FontSize" Value="10.5"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -142,31 +142,49 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- Glass Dark TextBox Style -->
+        <Style x:Key="GlassTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="6,4"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontFamily" Value="Consolas, Segoe UI"/>
+            <Setter Property="CaretBrush" Value="#38BDF8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <!-- Main Outer Container with Windows 7 Aero Modern Glass Style -->
     <Grid Margin="0">
         <Border x:Name="MainGlassBorder"
                 Background="{StaticResource GlassBackground}"
+                BorderBrush="#5538BDF8"
                 BorderThickness="1"
                 CornerRadius="8"
-                SnapsToDevicePixels="True"
-                ClipToBounds="False">
-            <Border.BorderBrush>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                    <GradientStop Color="#65FFFFFF" Offset="0"/>
-                    <GradientStop Color="#2538BDF8" Offset="0.5"/>
-                    <GradientStop Color="#15818CF8" Offset="1"/>
-                </LinearGradientBrush>
-            </Border.BorderBrush>
+                ClipToBounds="True">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="28" Color="#000000" Opacity="0.90" ShadowDepth="6"/>
+            </Border.Effect>
 
-            <Grid ClipToBounds="False">
-                <!-- 1. Ambient Floating Micro-Particles Canvas (Clipped to Window CornerRadius) -->
-                <Border CornerRadius="8" ClipToBounds="True" IsHitTestVisible="False">
-                    <controls:AeroParticlesCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-                </Border>
+            <Grid>
+                <!-- 1. Ambient Floating Micro-particles (Aero Atmosphere) -->
+                <controls:AeroParticlesCanvas IsHitTestVisible="False" Opacity="0.55"/>
 
-                <!-- 2. Windows 7 Aero Glass Specular Gloss Sheen -->
+                <!-- 2. Aero Top Glass Sheen (Soft Horizon Specular Highlight) -->
                 <Border Height="26" VerticalAlignment="Top" CornerRadius="8 8 0 0" IsHitTestVisible="False">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -198,14 +216,28 @@
                             <ColumnDefinition Width="Auto"/> <!-- Right Controls -->
                         </Grid.ColumnDefinitions>
 
-                        <!-- Left: Brand Badge & Timeframe Toggle Pill (5h vs 7d) -->
+                        <!-- Left: Interactive Provider Selector Button & Timeframe Pill -->
                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,6,0">
-                            <Border Background="#1A1E293B" BorderBrush="#3538BDF8" BorderThickness="1" CornerRadius="6" Padding="5,3" Margin="0,0,5,0">
+                            
+                            <!-- Clickable Provider Badge -->
+                            <Button x:Name="BtnProviderSelector"
+                                    Click="BtnProviderSelector_Click"
+                                    ToolTip="Clic para elegir cuál IA rastrear (Antigravity, DeepSeek, Claude, Gemini, OpenAI...)"
+                                    Padding="5,3" Margin="0,0,5,0">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource GlassBtnStyle}">
+                                        <Setter Property="Background" Value="#1A1E293B"/>
+                                        <Setter Property="BorderBrush" Value="#3538BDF8"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Setter Property="Padding" Value="5,3"/>
+                                    </Style>
+                                </Button.Style>
                                 <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <TextBlock Text="✦" Foreground="#38BDF8" FontWeight="Bold" FontSize="11" Margin="0,0,3,0"/>
-                                    <TextBlock Text="AGY" Foreground="#F8FAFC" FontWeight="Bold" FontSize="10" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding ActiveProviderIconGlyph}" Foreground="{Binding ActiveProviderAccentBrush}" FontWeight="Bold" FontSize="11" Margin="0,0,3,0"/>
+                                    <TextBlock Text="{Binding ActiveProviderShortCode}" Foreground="#F8FAFC" FontWeight="Bold" FontSize="10" VerticalAlignment="Center"/>
+                                    <TextBlock Text="▾" Foreground="#64748B" FontSize="8" Margin="3,1,0,0" VerticalAlignment="Center"/>
                                 </StackPanel>
-                            </Border>
+                            </Button>
 
                             <!-- Timeframe Toggle Switch (⏱ 5h | 📅 7d) -->
                             <Border Background="#120F172A" BorderBrush="#2538BDF8" BorderThickness="1" CornerRadius="6" Padding="1" VerticalAlignment="Center">
@@ -242,41 +274,41 @@
                             </Border>
                         </StackPanel>
 
-                        <!-- Center: 3 COMPACT CIRCULAR GAUGES (Airy, Unclipped, Modern Aero Style) -->
+                        <!-- Center: 3 COMPACT CIRCULAR GAUGES (Dynamic Router based on active Provider) -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">
                             
-                            <!-- Circle 1: Gemini -->
+                            <!-- Circle 1: Primary Model (Gemini / DeepSeek / Claude / OpenAI) -->
                             <controls:CircularGauge Margin="4,0" ClipToBounds="False"
-                                                    Header="GEMINI"
-                                                    HeaderBrush="{Binding MainGeminiStroke}"
-                                                    Percentage="{Binding MainGeminiPercentage, Mode=OneWay}"
-                                                    ValueText="{Binding MainGeminiValueText}"
-                                                    LabelText="{Binding MainGeminiLabel}"
-                                                    LabelBrush="{Binding MainGeminiStroke}"
-                                                    StrokeBrush="{Binding MainGeminiStroke}"
-                                                    ToolTip="{Binding MainGeminiTooltip}"/>
+                                                    Header="{Binding Gauge1Header}"
+                                                    HeaderBrush="{Binding Gauge1Stroke}"
+                                                    Percentage="{Binding Gauge1Percentage, Mode=OneWay}"
+                                                    ValueText="{Binding Gauge1ValueText}"
+                                                    LabelText="{Binding Gauge1Label}"
+                                                    LabelBrush="{Binding Gauge1Stroke}"
+                                                    StrokeBrush="{Binding Gauge1Stroke}"
+                                                    ToolTip="{Binding Gauge1Tooltip}"/>
 
-                            <!-- Circle 2: Claude & GPT -->
+                            <!-- Circle 2: Secondary Model / Context Window -->
                             <controls:CircularGauge Margin="4,0" ClipToBounds="False"
-                                                    Header="CLAUDE"
-                                                    HeaderBrush="{Binding MainClaudeStroke}"
-                                                    Percentage="{Binding MainClaudePercentage, Mode=OneWay}"
-                                                    ValueText="{Binding MainClaudeValueText}"
-                                                    LabelText="{Binding MainClaudeLabel}"
-                                                    LabelBrush="{Binding MainClaudeStroke}"
-                                                    StrokeBrush="{Binding MainClaudeStroke}"
-                                                    ToolTip="{Binding MainClaudeTooltip}"/>
+                                                    Header="{Binding Gauge2Header}"
+                                                    HeaderBrush="{Binding Gauge2Stroke}"
+                                                    Percentage="{Binding Gauge2Percentage, Mode=OneWay}"
+                                                    ValueText="{Binding Gauge2ValueText}"
+                                                    LabelText="{Binding Gauge2Label}"
+                                                    LabelBrush="{Binding Gauge2Stroke}"
+                                                    StrokeBrush="{Binding Gauge2Stroke}"
+                                                    ToolTip="{Binding Gauge2Tooltip}"/>
 
-                            <!-- Circle 3: Gemini 4 Argon -->
+                            <!-- Circle 3: Argon Fast Reasoning / Status -->
                             <controls:CircularGauge Margin="4,0" ClipToBounds="False"
-                                                    Header="ARGON"
-                                                    HeaderBrush="{Binding MainArgonStroke}"
-                                                    Percentage="{Binding MainArgonPercentage, Mode=OneWay}"
-                                                    ValueText="{Binding MainArgonValueText}"
-                                                    LabelText="{Binding MainArgonLabel}"
-                                                    LabelBrush="{Binding MainArgonStroke}"
-                                                    StrokeBrush="{Binding MainArgonStroke}"
-                                                    ToolTip="{Binding MainArgonTooltip}"/>
+                                                    Header="{Binding Gauge3Header}"
+                                                    HeaderBrush="{Binding Gauge3Stroke}"
+                                                    Percentage="{Binding Gauge3Percentage, Mode=OneWay}"
+                                                    ValueText="{Binding Gauge3ValueText}"
+                                                    LabelText="{Binding Gauge3Label}"
+                                                    LabelBrush="{Binding Gauge3Stroke}"
+                                                    StrokeBrush="{Binding Gauge3Stroke}"
+                                                    ToolTip="{Binding Gauge3Tooltip}"/>
 
                         </StackPanel>
 
@@ -296,255 +328,650 @@
                         </StackPanel>
                     </Grid>
 
-                <!-- 2. EXPANDED FLYOUT DASHBOARD -->
-                <Grid x:Name="ExpandedFlyout" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}" Margin="14,0,14,14">
-                    <StackPanel Orientation="Vertical">
+                    <!-- QUICK PROVIDER SELECTOR POPUP -->
+                    <Popup x:Name="ProviderQuickPopup"
+                           PlacementTarget="{Binding ElementName=BtnProviderSelector}"
+                           Placement="Bottom"
+                           VerticalOffset="6"
+                           StaysOpen="False"
+                           AllowsTransparency="True"
+                           PopupAnimation="Fade">
+                        <Border Background="#F40B132B"
+                                BorderBrush="#4038BDF8"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="10"
+                                Width="330">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="25" Color="#000000" Opacity="0.9" ShadowDepth="4"/>
+                            </Border.Effect>
+                            <StackPanel Orientation="Vertical">
+                                <!-- Header -->
+                                <Grid Margin="4,2,4,8">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⚡" Foreground="#38BDF8" FontSize="11" FontWeight="Bold" Margin="0,0,4,0"/>
+                                        <TextBlock Text="SELECCIONAR RASTREADOR DE IA" Foreground="#94A3B8" FontSize="10" FontWeight="Bold"/>
+                                    </StackPanel>
+                                </Grid>
 
-                        <Separator Background="#2638BDF8" Height="1" Margin="0,0,0,12"/>
+                                <!-- Provider 1: Antigravity IDE -->
+                                <Button Style="{StaticResource GlassBtnStyle}" Margin="0,2" Padding="8,6" HorizontalContentAlignment="Stretch"
+                                        Click="BtnSelectProvider_Click" Tag="antigravity_gemini">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="✦" Foreground="#38BDF8" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                                            <TextBlock Text="Google Antigravity (IDE)" Foreground="#F8FAFC" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Gemini, Claude y Argon en tiempo real" Foreground="#64748B" FontSize="9.5"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="#2010B981" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
+                                            <TextBlock Text="Local" Foreground="#10B981" FontSize="9" FontWeight="Bold"/>
+                                        </Border>
+                                    </Grid>
+                                </Button>
 
-                        <!-- Navigation Bar: Switch between Quotas & Tokens -->
-                        <Grid Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
+                                <!-- Provider 2: DeepSeek API -->
+                                <Button Style="{StaticResource GlassBtnStyle}" Margin="0,2" Padding="8,6" HorizontalContentAlignment="Stretch"
+                                        Click="BtnSelectProvider_Click" Tag="deepseek">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="🐋" Foreground="#38BDF8" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                                            <TextBlock Text="DeepSeek (V3 / R1)" Foreground="#F8FAFC" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Límites de tokens, saldo y API" Foreground="#64748B" FontSize="9.5"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="#2038BDF8" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding DeepSeekStatusBadge}" Foreground="#38BDF8" FontSize="9" FontWeight="Bold"/>
+                                        </Border>
+                                    </Grid>
+                                </Button>
 
-                            <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                <Button Content="✦ Cuotas y Límites (Semanal/5h)" Style="{StaticResource ViewTabBtnStyle}" Margin="0,0,6,0" Click="BtnTabQuotas_Click"/>
-                                <Button Content="✦ Tokens y Contexto" Style="{StaticResource ViewTabBtnStyle}" Click="BtnTabTokens_Click"/>
+                                <!-- Provider 3: Anthropic Claude -->
+                                <Button Style="{StaticResource GlassBtnStyle}" Margin="0,2" Padding="8,6" HorizontalContentAlignment="Stretch"
+                                        Click="BtnSelectProvider_Click" Tag="claude">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="✻" Foreground="#C084FC" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                                            <TextBlock Text="Anthropic Claude API" Foreground="#F8FAFC" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Claude 3.5 / 3.7 Sonnet y Opus" Foreground="#64748B" FontSize="9.5"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="#20C084FC" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding ClaudeStatusBadge}" Foreground="#C084FC" FontSize="9" FontWeight="Bold"/>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <!-- Provider 4: Google Gemini AI Studio -->
+                                <Button Style="{StaticResource GlassBtnStyle}" Margin="0,2" Padding="8,6" HorizontalContentAlignment="Stretch"
+                                        Click="BtnSelectProvider_Click" Tag="gemini_api">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="✦" Foreground="#60A5FA" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                                            <TextBlock Text="Gemini API (AI Studio)" Foreground="#F8FAFC" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="API Key directa de Google AI Studio" Foreground="#64748B" FontSize="9.5"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="#2060A5FA" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding GeminiStatusBadge}" Foreground="#60A5FA" FontSize="9" FontWeight="Bold"/>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <!-- Provider 5: OpenAI -->
+                                <Button Style="{StaticResource GlassBtnStyle}" Margin="0,2" Padding="8,6" HorizontalContentAlignment="Stretch"
+                                        Click="BtnSelectProvider_Click" Tag="openai">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="⚙" Foreground="#10B981" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                                            <TextBlock Text="OpenAI API (GPT-4o)" Foreground="#F8FAFC" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="GPT-4o, o1, o3 API oficial" Foreground="#64748B" FontSize="9.5"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="#2010B981" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding OpenAiStatusBadge}" Foreground="#10B981" FontSize="9" FontWeight="Bold"/>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <!-- Provider 6: Ollama -->
+                                <Button Style="{StaticResource GlassBtnStyle}" Margin="0,2" Padding="8,6" HorizontalContentAlignment="Stretch"
+                                        Click="BtnSelectProvider_Click" Tag="ollama">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="26"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="🦙" Foreground="#F59E0B" FontSize="13" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                                            <TextBlock Text="Ollama Local" Foreground="#F8FAFC" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Modelos locales (localhost:11434)" Foreground="#64748B" FontSize="9.5"/>
+                                        </StackPanel>
+                                        <Border Grid.Column="2" Background="#20F59E0B" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
+                                            <TextBlock Text="Local" Foreground="#F59E0B" FontSize="9" FontWeight="Bold"/>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <Separator Background="#2038BDF8" Height="1" Margin="0,6,0,6"/>
+
+                                <!-- Config button -->
+                                <Button Style="{StaticResource GlassBtnStyle}" Padding="8,6" HorizontalContentAlignment="Center"
+                                        Click="BtnOpenConnectionsTab_Click">
+                                    <TextBlock Text="⚙ Configurar Claves y ¿Cómo Conectar?" Foreground="#38BDF8" FontSize="10.5" FontWeight="SemiBold"/>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+                    </Popup>
+
+                    <!-- 2. EXPANDED FLYOUT DASHBOARD -->
+                    <Grid x:Name="ExpandedFlyout" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}" Margin="14,0,14,14">
+                        <StackPanel Orientation="Vertical">
+
+                            <Separator Background="#2638BDF8" Height="1" Margin="0,0,0,12"/>
+
+                            <!-- Navigation Bar: Switch between Quotas, Tokens, & Connections -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Compact Active Tabs with Glowing Selection -->
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <Button Content="✦ Cuotas" Click="BtnTabQuotas_Click" Margin="0,0,5,0">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource ViewTabBtnStyle}">
+                                                <Setter Property="Padding" Value="8,4"/>
+                                                <Setter Property="FontSize" Value="10"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ShowQuotasView}" Value="True">
+                                                        <Setter Property="Background" Value="#2538BDF8"/>
+                                                        <Setter Property="Foreground" Value="#38BDF8"/>
+                                                        <Setter Property="BorderBrush" Value="#5538BDF8"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+
+                                    <Button Content="✦ Tokens" Click="BtnTabTokens_Click" Margin="0,0,5,0">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource ViewTabBtnStyle}">
+                                                <Setter Property="Padding" Value="8,4"/>
+                                                <Setter Property="FontSize" Value="10"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ShowTokensView}" Value="True">
+                                                        <Setter Property="Background" Value="#2538BDF8"/>
+                                                        <Setter Property="Foreground" Value="#38BDF8"/>
+                                                        <Setter Property="BorderBrush" Value="#5538BDF8"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+
+                                    <Button Content="🔌 Claves" Click="BtnTabConnections_Click">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource ViewTabBtnStyle}">
+                                                <Setter Property="Padding" Value="8,4"/>
+                                                <Setter Property="FontSize" Value="10"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ShowConnectionsView}" Value="True">
+                                                        <Setter Property="Background" Value="#2538BDF8"/>
+                                                        <Setter Property="Foreground" Value="#38BDF8"/>
+                                                        <Setter Property="BorderBrush" Value="#5538BDF8"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </StackPanel>
+
+                                <!-- Manual Force Refresh Button (Clean & Compact) -->
+                                <Button Grid.Column="1" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnRefresh_Click" VerticalAlignment="Center" ToolTip="Sincronizar cuotas y tokens ahora">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="↻" FontSize="11" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,3,0"/>
+                                        <TextBlock Text="Sincronizar" FontSize="10" Foreground="#F8FAFC"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <!-- VIEW 1: OFFICIAL QUOTAS (Weekly & 5-Hour Limits) -->
+                            <StackPanel Visibility="{Binding ShowQuotasView, Converter={StaticResource BoolToVis}}">
+
+                                <!-- Section 1: Gemini Models -->
+                                <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,0,0,10">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,8">
+                                            <TextBlock Text="GEMINI MODELS" Foreground="#F8FAFC" FontSize="13" FontWeight="Bold"/>
+                                            <TextBlock Text="Flash &amp; Pro" Foreground="#64748B" FontSize="11" HorizontalAlignment="Right"/>
+                                        </Grid>
+
+                                        <!-- Weekly Limit -->
+                                        <Border Background="#111827" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Gauge -->
+                                                <controls:CircularGauge Grid.Column="0" Margin="0,0,12,0"
+                                                                        Percentage="{Binding GeminiWeeklyPercentage, Mode=OneWay}"
+                                                                        ValueText="{Binding GeminiWeeklyText}"
+                                                                        LabelText="Semanal"
+                                                                        StrokeBrush="#10B981"/>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <Grid Margin="0,0,0,4">
+                                                        <TextBlock Text="Weekly Limit Remaining" Foreground="#94A3B8" FontSize="11" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding GeminiWeeklyCountdown, StringFormat='Reinicia en {0}'}" Foreground="#10B981" FontSize="10.5" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                    <TextBlock Text="{Binding GeminiWeeklyDesc}" Foreground="#64748B" FontSize="10.5" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Five Hour Limit -->
+                                        <Border Background="#111827" CornerRadius="8" Padding="10,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Gauge -->
+                                                <controls:CircularGauge Grid.Column="0" Margin="0,0,12,0"
+                                                                        Percentage="{Binding GeminiFiveHourPercentage, Mode=OneWay}"
+                                                                        ValueText="{Binding GeminiFiveHourText}"
+                                                                        LabelText="5 Horas"
+                                                                        StrokeBrush="#38BDF8"/>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <Grid Margin="0,0,0,4">
+                                                        <TextBlock Text="Five Hour Limit Remaining" Foreground="#94A3B8" FontSize="11" FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{Binding GeminiFiveHourCountdown, StringFormat='Reinicia en {0}'}" Foreground="#38BDF8" FontSize="10.5" HorizontalAlignment="Right"/>
+                                                    </Grid>
+                                                    <TextBlock Text="Regula la demanda global distribuyendo capacidad de manera uniforme." Foreground="#64748B" FontSize="10.5" TextWrapping="Wrap"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Section 2: Claude & GPT Models + Argon -->
+                                <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="12" Padding="14,10" Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Claude & GPT -->
+                                        <Border Grid.Column="0" Background="#111827" CornerRadius="8" Padding="10,8" Margin="0,0,5,0">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <controls:CircularGauge Grid.Column="0" Margin="0,0,10,0"
+                                                                        Percentage="{Binding ClaudeWeeklyPercentage, Mode=OneWay}"
+                                                                        ValueText="{Binding ClaudeWeeklyText}"
+                                                                        LabelText="Claude"
+                                                                        StrokeBrush="#C084FC"/>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="CLAUDE &amp; GPT" Foreground="#F8FAFC" FontSize="11" FontWeight="Bold" Margin="0,0,0,2"/>
+                                                    <TextBlock Text="{Binding ClaudeFiveHourText, StringFormat='5h: {0}'}" Foreground="#94A3B8" FontSize="10"/>
+                                                    <TextBlock Text="{Binding ClaudeWeeklyCountdown, StringFormat='Rein: {0}'}" Foreground="#C084FC" FontSize="10"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Gemini 4 Argon -->
+                                        <Border Grid.Column="1" Background="#111827" CornerRadius="8" Padding="10,8" Margin="5,0,0,0">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <controls:CircularGauge Grid.Column="0" Margin="0,0,10,0"
+                                                                        Percentage="{Binding ArgonWeeklyPercentage, Mode=OneWay}"
+                                                                        ValueText="{Binding ArgonWeeklyText}"
+                                                                        LabelText="Argon"
+                                                                        StrokeBrush="#F59E0B"/>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="ARGON REASON" Foreground="#F8FAFC" FontSize="11" FontWeight="Bold" Margin="0,0,0,2"/>
+                                                    <TextBlock Text="Razonamiento Veloz" Foreground="#94A3B8" FontSize="10"/>
+                                                    <TextBlock Text="{Binding ArgonWeeklyCountdown, StringFormat='Rein: {0}'}" Foreground="#F59E0B" FontSize="10"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </Grid>
+                                </Border>
                             </StackPanel>
 
-                            <!-- Manual Force Refresh -->
-                            <Button Grid.Column="1" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnRefresh_Click" VerticalAlignment="Center">
-                                <TextBlock Text="↻ Sincronizar" FontSize="10.5"/>
-                            </Button>
-                        </Grid>
+                            <!-- VIEW 2: DETAILED TOKEN METRICS & CONTEXT -->
+                            <StackPanel Visibility="{Binding ShowTokensView, Converter={StaticResource BoolToVis}}">
 
-                        <!-- VIEW 1: OFFICIAL QUOTAS (Weekly & 5-Hour Limits) -->
-                        <StackPanel Visibility="{Binding ShowQuotasView, Converter={StaticResource BoolToVis}}">
+                                <!-- Active Session Banner -->
+                                <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="12" Padding="14,10" Margin="0,0,0,10">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
 
-                            <!-- Section 1: Gemini Models -->
-                            <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,0,0,10">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,8">
-                                        <TextBlock Text="GEMINI MODELS" Foreground="#F8FAFC" FontSize="13" FontWeight="Bold"/>
-                                        <TextBlock Text="Flash &amp; Pro" Foreground="#64748B" FontSize="11" HorizontalAlignment="Right"/>
+                                        <StackPanel Grid.Column="0">
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,3">
+                                                <TextBlock Text="{Binding CurrentProviderShortName}" Foreground="#38BDF8" FontSize="10" FontWeight="Bold" Margin="0,0,6,0"/>
+                                                <TextBlock Text="{Binding Usage.ModelName}" Foreground="#94A3B8" FontSize="10"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Usage.ConversationTitle}" Foreground="#F8FAFC" FontSize="12.5" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+
+                                        <Border Grid.Column="1" VerticalAlignment="Center" Background="#1A10B981" BorderBrush="#3010B981" BorderThickness="1" CornerRadius="6" Padding="6,3">
+                                            <TextBlock Text="● EN VIVO" Foreground="#10B981" FontSize="9.5" FontWeight="Bold"/>
+                                        </Border>
                                     </Grid>
+                                </Border>
 
-                                    <!-- Weekly Limit -->
-                                    <Border Background="#111827" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <!-- Gauge -->
-                                            <controls:CircularGauge Grid.Column="0" Margin="0,0,12,0"
-                                                                    Percentage="{Binding GeminiWeeklyPercentage, Mode=OneWay}"
-                                                                    ValueText="{Binding GeminiWeeklyText}"
-                                                                    LabelText="Semanal"
-                                                                    StrokeBrush="#10B981"/>
-
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <Grid Margin="0,0,0,4">
-                                                    <TextBlock Text="Weekly Limit Remaining" Foreground="#94A3B8" FontSize="11" FontWeight="SemiBold"/>
-                                                    <TextBlock Text="{Binding GeminiWeeklyCountdown, StringFormat='Reinicia en {0}'}" Foreground="#10B981" FontSize="10.5" HorizontalAlignment="Right"/>
-                                                </Grid>
-                                                <TextBlock Text="{Binding GeminiWeeklyDesc}" Foreground="#64748B" FontSize="10.5" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-
-                                    <!-- Five Hour Limit -->
-                                    <Border Background="#111827" CornerRadius="8" Padding="10,8">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <!-- Gauge -->
-                                            <controls:CircularGauge Grid.Column="0" Margin="0,0,12,0"
-                                                                    Percentage="{Binding GeminiFiveHourPercentage, Mode=OneWay}"
-                                                                    ValueText="{Binding GeminiFiveHourText}"
-                                                                    LabelText="5 Horas"
-                                                                    StrokeBrush="#38BDF8"/>
-
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <Grid Margin="0,0,0,4">
-                                                    <TextBlock Text="Five Hour Limit Remaining" Foreground="#94A3B8" FontSize="11" FontWeight="SemiBold"/>
-                                                    <TextBlock Text="{Binding GeminiFiveHourCountdown, StringFormat='Reinicia en {0}'}" Foreground="#38BDF8" FontSize="10.5" HorizontalAlignment="Right"/>
-                                                </Grid>
-                                                <TextBlock Text="Regula la demanda global distribuyendo capacidad de manera uniforme." Foreground="#64748B" FontSize="10.5" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Section 2: Claude & GPT Models + Argon -->
-                            <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="12" Padding="14,10" Margin="0,0,0,10">
-                                <Grid>
+                                <!-- 4 Core Metric Cards (Grid 2x2) -->
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="8"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="8"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Claude & GPT -->
-                                    <Border Grid.Column="0" Background="#111827" CornerRadius="8" Padding="10,8" Margin="0,0,5,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <controls:CircularGauge Grid.Column="0" Margin="0,0,8,0"
-                                                                    Percentage="{Binding ClaudeWeeklyPercentage, Mode=OneWay}"
-                                                                    ValueText="{Binding ClaudeWeeklyText}"
-                                                                    LabelText="Claude"
-                                                                    StrokeBrush="#C084FC"/>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="CLAUDE &amp; GPT" Foreground="#F8FAFC" FontSize="11" FontWeight="Bold"/>
-                                                <TextBlock Text="Opus, Sonnet, GPT" Foreground="#64748B" FontSize="9.5"/>
-                                                <TextBlock Text="Límite Semanal" Foreground="#94A3B8" FontSize="10" Margin="0,2,0,0"/>
+                                    <!-- Card 1: Ventana de Contexto -->
+                                    <Border Grid.Row="0" Grid.Column="0" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                        <StackPanel>
+                                            <TextBlock Text="VENTANA DE CONTEXTO" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Usage.FormattedCurrentContext}" Foreground="#F8FAFC" FontSize="18" FontWeight="Bold"/>
+                                                <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
                                             </StackPanel>
-                                        </Grid>
+                                            <TextBlock Text="{Binding Usage.FormattedPercentUsed, StringFormat={}{0} del límite}" Foreground="#38BDF8" FontSize="10" Margin="0,2,0,0"/>
+                                        </StackPanel>
                                     </Border>
 
-                                    <!-- Argon -->
-                                    <Border Grid.Column="1" Background="#111827" CornerRadius="8" Padding="10,8" Margin="5,0,0,0">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                            </Grid.ColumnDefinitions>
-                                            <controls:CircularGauge Grid.Column="0" Margin="0,0,8,0"
-                                                                    Percentage="{Binding ArgonWeeklyPercentage, Mode=OneWay}"
-                                                                    ValueText="{Binding ArgonWeeklyText}"
-                                                                    LabelText="Argon"
-                                                                    StrokeBrush="#F59E0B"/>
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="GEMINI 4 ARGON" Foreground="#F8FAFC" FontSize="11" FontWeight="Bold"/>
-                                                <TextBlock Text="Cuota Dedicada" Foreground="#64748B" FontSize="9.5"/>
-                                                <TextBlock Text="Límite Semanal" Foreground="#94A3B8" FontSize="10" Margin="0,2,0,0"/>
+                                    <!-- Card 2: Tokens Libres -->
+                                    <Border Grid.Row="0" Grid.Column="2" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                        <StackPanel>
+                                            <TextBlock Text="CUÁNTO ME QUEDA" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Usage.FormattedRemaining}" Foreground="#10B981" FontSize="18" FontWeight="Bold"/>
+                                                <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
                                             </StackPanel>
-                                        </Grid>
+                                            <TextBlock Text="{Binding Usage.FormattedPercentRemaining, StringFormat={}{0} libre}" Foreground="#10B981" FontSize="10" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Card 3: Cache Prompt -->
+                                    <Border Grid.Row="2" Grid.Column="0" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                        <StackPanel>
+                                            <TextBlock Text="AHORRO PROMPT CACHE" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding FormattedLastTurnCache}" Foreground="#C084FC" FontSize="18" FontWeight="Bold"/>
+                                                <TextBlock Text=" en turno" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Usage.FormattedCacheHit, StringFormat=⚡ Tasa acierto: {0}}" Foreground="#A855F7" FontSize="10" Margin="0,2,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Card 4: Consumo Hoy -->
+                                    <Border Grid.Row="2" Grid.Column="2" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                        <StackPanel>
+                                            <TextBlock Text="CONSUMO TOTAL HOY" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Usage.FormattedTodayTotal}" Foreground="#F59E0B" FontSize="18" FontWeight="Bold"/>
+                                                <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding TodayBreakdownText}" Foreground="#94A3B8" FontSize="9.5" Margin="0,2,0,0"/>
+                                        </StackPanel>
                                     </Border>
                                 </Grid>
-                            </Border>
-                        </StackPanel>
+                            </StackPanel>
 
-                        <!-- VIEW 2: LIVE SESSION TOKENS -->
-                        <StackPanel Visibility="{Binding ShowTokensView, Converter={StaticResource BoolToVis}}">
-                            <!-- Conversation Title Header -->
-                            <Border Background="#111827" CornerRadius="8" Padding="10,6" Margin="0,0,0,10">
+                            <!-- VIEW 3: PROVEEDORES Y CLAVES (CÓMO SE CONECTA CADA UNO) -->
+                            <ScrollViewer MaxHeight="330" VerticalScrollBarVisibility="Auto"
+                                          Visibility="{Binding ShowConnectionsView, Converter={StaticResource BoolToVis}}"
+                                          Margin="0,0,0,10">
+                                <StackPanel Orientation="Vertical">
+
+                                    <!-- Header Info Box -->
+                                    <Border Background="#1538BDF8" BorderBrush="#3538BDF8" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <TextBlock Text="⚡ Centro de Proveedores y Conexiones" Foreground="#38BDF8" FontSize="11" FontWeight="Bold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Dockus permite rastrear tu IDE local de Antigravity o conectar directamente tus claves de DeepSeek, Claude, Gemini u OpenAI para consultar saldos y cuotas." Foreground="#94A3B8" FontSize="10" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Card 1: Google Antigravity (Nativo) -->
+                                    <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,6">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="✦" Foreground="#38BDF8" FontWeight="Bold" FontSize="13" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Google Antigravity (IDE Local)" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12"/>
+                                                </StackPanel>
+                                                <Border Background="#2010B981" CornerRadius="4" Padding="5,2" HorizontalAlignment="Right">
+                                                    <TextBlock Text="✓ Conexión Automática" Foreground="#10B981" FontSize="9.5" FontWeight="Bold"/>
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="¿Cómo se conecta?" Foreground="#38BDF8" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Dockus se conecta por HTTP Connect-RPC local en 127.0.0.1 al daemon de lenguaje de Antigravity (~/.gemini/antigravity/daemon). Es 100% privado, no requiere API key y no consume saldo externo." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            <Button Content="Establecer como Rastreador Activo" Style="{StaticResource GlassBtnStyle}" Padding="8,4" HorizontalAlignment="Left" Click="BtnSelectProvider_Click" Tag="antigravity_gemini"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Card 2: DeepSeek Platform -->
+                                    <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,6">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🐋" Foreground="#38BDF8" FontSize="13" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="DeepSeek Platform (V3 / R1)" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12"/>
+                                                </StackPanel>
+                                                <Border Background="#2038BDF8" CornerRadius="4" Padding="5,2" HorizontalAlignment="Right">
+                                                    <TextBlock Text="platform.deepseek.com" Foreground="#38BDF8" FontSize="9.5"/>
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="¿Cómo se conecta?" Foreground="#38BDF8" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Se conecta vía HTTPS a https://api.deepseek.com/user/balance para monitorear tu saldo restante, límites de tokens y estado de modelos V3 y R1. Requiere una clave API de tu cuenta." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            
+                                            <TextBlock Text="API Key de DeepSeek (sk-...):" Foreground="#94A3B8" FontSize="10" Margin="0,0,0,3"/>
+                                            <TextBox Style="{StaticResource GlassTextBoxStyle}" Text="{Binding Settings.DeepSeekApiKey, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                            
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="Probar y Guardar" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSaveAndTestDeepSeek_Click" Margin="0,0,6,0"/>
+                                                    <Button Content="Rastrear DeepSeek" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSelectProvider_Click" Tag="deepseek"/>
+                                                </StackPanel>
+                                            </Grid>
+                                            <TextBlock Text="{Binding DeepSeekTestStatus}" Foreground="#38BDF8" FontSize="10" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Card 3: Anthropic Claude -->
+                                    <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,6">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="✻" Foreground="#C084FC" FontWeight="Bold" FontSize="13" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Anthropic Claude API" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12"/>
+                                                </StackPanel>
+                                                <Border Background="#20C084FC" CornerRadius="4" Padding="5,2" HorizontalAlignment="Right">
+                                                    <TextBlock Text="console.anthropic.com" Foreground="#C084FC" FontSize="9.5"/>
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="¿Cómo se conecta?" Foreground="#C084FC" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Se conecta a https://api.anthropic.com/v1/models con el encabezado x-api-key para verificar tu cuenta y disponibilidad de modelos Claude 3.5 y 3.7 Sonnet." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            
+                                            <TextBlock Text="API Key de Anthropic (sk-ant-...):" Foreground="#94A3B8" FontSize="10" Margin="0,0,0,3"/>
+                                            <TextBox Style="{StaticResource GlassTextBoxStyle}" Text="{Binding Settings.ClaudeApiKey, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                            
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="Probar y Guardar" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSaveAndTestClaude_Click" Margin="0,0,6,0"/>
+                                                    <Button Content="Rastrear Claude" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSelectProvider_Click" Tag="claude"/>
+                                                </StackPanel>
+                                            </Grid>
+                                            <TextBlock Text="{Binding ClaudeTestStatus}" Foreground="#C084FC" FontSize="10" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Card 4: Google AI Studio (Gemini) -->
+                                    <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,6">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="✦" Foreground="#60A5FA" FontWeight="Bold" FontSize="13" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Google AI Studio (Gemini API)" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12"/>
+                                                </StackPanel>
+                                                <Border Background="#2060A5FA" CornerRadius="4" Padding="5,2" HorizontalAlignment="Right">
+                                                    <TextBlock Text="aistudio.google.com" Foreground="#60A5FA" FontSize="9.5"/>
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="¿Cómo se conecta?" Foreground="#60A5FA" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Se conecta por HTTPS a https://generativelanguage.googleapis.com usando tu API Key gratuita creada en Google AI Studio." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            
+                                            <TextBlock Text="API Key de Google AI Studio:" Foreground="#94A3B8" FontSize="10" Margin="0,0,0,3"/>
+                                            <TextBox Style="{StaticResource GlassTextBoxStyle}" Text="{Binding Settings.GeminiApiKey, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                            
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="Probar y Guardar" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSaveAndTestGemini_Click" Margin="0,0,6,0"/>
+                                                    <Button Content="Rastrear Gemini API" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSelectProvider_Click" Tag="gemini_api"/>
+                                                </StackPanel>
+                                            </Grid>
+                                            <TextBlock Text="{Binding GeminiTestStatus}" Foreground="#60A5FA" FontSize="10" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Card 5: OpenAI -->
+                                    <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,6">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="⚙" Foreground="#10B981" FontSize="13" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="OpenAI API (GPT-4o / o1)" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12"/>
+                                                </StackPanel>
+                                                <Border Background="#2010B981" CornerRadius="4" Padding="5,2" HorizontalAlignment="Right">
+                                                    <TextBlock Text="platform.openai.com" Foreground="#10B981" FontSize="9.5"/>
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="¿Cómo se conecta?" Foreground="#10B981" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Se conecta a https://api.openai.com/v1/models con autenticación Bearer para validar credenciales y modelos disponibles." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            
+                                            <TextBlock Text="API Key de OpenAI (sk-...):" Foreground="#94A3B8" FontSize="10" Margin="0,0,0,3"/>
+                                            <TextBox Style="{StaticResource GlassTextBoxStyle}" Text="{Binding Settings.OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                            
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="Probar y Guardar" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSaveAndTestOpenAi_Click" Margin="0,0,6,0"/>
+                                                    <Button Content="Rastrear OpenAI" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSelectProvider_Click" Tag="openai"/>
+                                                </StackPanel>
+                                            </Grid>
+                                            <TextBlock Text="{Binding OpenAiTestStatus}" Foreground="#10B981" FontSize="10" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- Card 6: Ollama Local -->
+                                    <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                        <StackPanel>
+                                            <Grid Margin="0,0,0,6">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="🦙" Foreground="#F59E0B" FontSize="13" Margin="0,0,6,0"/>
+                                                    <TextBlock Text="Ollama (Servidor Local)" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12"/>
+                                                </StackPanel>
+                                                <Border Background="#20F59E0B" CornerRadius="4" Padding="5,2" HorizontalAlignment="Right">
+                                                    <TextBlock Text="Sin claves (Local)" Foreground="#F59E0B" FontSize="9.5"/>
+                                                </Border>
+                                            </Grid>
+                                            <TextBlock Text="¿Cómo se conecta?" Foreground="#F59E0B" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Se comunica directamente por HTTP con tu daemon local de Ollama en /api/tags para leer los modelos que tengas instalados." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            
+                                            <TextBlock Text="URL Base de Ollama:" Foreground="#94A3B8" FontSize="10" Margin="0,0,0,3"/>
+                                            <TextBox Style="{StaticResource GlassTextBoxStyle}" Text="{Binding Settings.OllamaBaseUrl, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                            
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <Button Content="Probar y Guardar" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSaveAndTestOllama_Click" Margin="0,0,6,0"/>
+                                                    <Button Content="Rastrear Ollama" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnSelectProvider_Click" Tag="ollama"/>
+                                                </StackPanel>
+                                            </Grid>
+                                            <TextBlock Text="{Binding OllamaTestStatus}" Foreground="#F59E0B" FontSize="10" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                </StackPanel>
+                            </ScrollViewer>
+
+                            <!-- Settings & Docking Controls Footer -->
+                            <Border Background="#0F172A" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="10,8">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Usage.ConversationTitle}" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                        <TextBlock Text="Sesión Antigravity: " Foreground="#64748B" FontSize="10"/>
-                                        <TextBlock Text="{Binding ShortConversationId}" Foreground="#94A3B8" FontSize="10" FontFamily="Consolas"/>
-                                        <TextBlock Text=" · " Foreground="#64748B" FontSize="10"/>
-                                        <TextBlock Text="{Binding Usage.StepCount, StringFormat=Paso {0}}" Foreground="#38BDF8" FontWeight="SemiBold" FontSize="10"/>
-                                    </StackPanel>
+                                    <!-- Docking Position Buttons -->
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="Posición en Barra:" Foreground="#94A3B8" FontSize="10.5" VerticalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                            <Button Content="Abajo Der" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="BottomRight"/>
+                                            <Button Content="Centro" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="BottomCenter"/>
+                                            <Button Content="Abajo Izq" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="BottomLeft"/>
+                                            <Button Content="Flotante" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="Floating"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Opacity Slider & Always-on-top -->
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <CheckBox Content="Siempre visible" Foreground="#94A3B8" FontSize="10.5" IsChecked="{Binding Settings.AlwaysOnTop}" Checked="AlwaysOnTop_Changed" Unchecked="AlwaysOnTop_Changed"/>
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                            <TextBlock Text="Opacidad:" Foreground="#94A3B8" FontSize="10.5" Margin="0,0,6,0" VerticalAlignment="Center"/>
+                                            <Slider Width="90" Minimum="0.50" Maximum="1.0" Value="{Binding Settings.GlassOpacity}" ValueChanged="OpacitySlider_ValueChanged" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding FormattedOpacity}" Foreground="#38BDF8" FontSize="10.5" Width="30" Margin="4,0,0,0" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Grid>
                                 </StackPanel>
                             </Border>
 
-                            <!-- 4 Core Metric Cards (Grid 2x2) -->
-                            <Grid Margin="0,0,0,10">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="8"/>
-                                    <RowDefinition Height="Auto"/>
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="8"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-
-                                <!-- Card 1: Ventana de Contexto -->
-                                <Border Grid.Row="0" Grid.Column="0" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                                    <StackPanel>
-                                        <TextBlock Text="VENTANA DE CONTEXTO" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Usage.FormattedCurrentContext}" Foreground="#F8FAFC" FontSize="18" FontWeight="Bold"/>
-                                            <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Usage.FormattedPercentUsed, StringFormat={}{0} del límite}" Foreground="#38BDF8" FontSize="10" Margin="0,2,0,0"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Card 2: Tokens Libres -->
-                                <Border Grid.Row="0" Grid.Column="2" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                                    <StackPanel>
-                                        <TextBlock Text="CUÁNTO ME QUEDA" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Usage.FormattedRemaining}" Foreground="#10B981" FontSize="18" FontWeight="Bold"/>
-                                            <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Usage.FormattedPercentRemaining, StringFormat={}{0} libre}" Foreground="#10B981" FontSize="10" Margin="0,2,0,0"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Card 3: Cache Prompt -->
-                                <Border Grid.Row="2" Grid.Column="0" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                                    <StackPanel>
-                                        <TextBlock Text="AHORRO PROMPT CACHE" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding FormattedLastTurnCache}" Foreground="#C084FC" FontSize="18" FontWeight="Bold"/>
-                                            <TextBlock Text=" en turno" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding Usage.FormattedCacheHit, StringFormat=⚡ Tasa acierto: {0}}" Foreground="#A855F7" FontSize="10" Margin="0,2,0,0"/>
-                                    </StackPanel>
-                                </Border>
-
-                                <!-- Card 4: Consumo Hoy -->
-                                <Border Grid.Row="2" Grid.Column="2" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                                    <StackPanel>
-                                        <TextBlock Text="CONSUMO TOTAL HOY" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                        <StackPanel Orientation="Horizontal">
-                                            <TextBlock Text="{Binding Usage.FormattedTodayTotal}" Foreground="#F59E0B" FontSize="18" FontWeight="Bold"/>
-                                            <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
-                                        </StackPanel>
-                                        <TextBlock Text="{Binding TodayBreakdownText}" Foreground="#94A3B8" FontSize="9.5" Margin="0,2,0,0"/>
-                                    </StackPanel>
-                                </Border>
-                            </Grid>
                         </StackPanel>
+                    </Grid>
 
-                        <!-- Settings & Docking Controls Footer -->
-                        <Border Background="#0F172A" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="10,8">
-                            <StackPanel>
-                                <!-- Docking Position Buttons -->
-                                <Grid Margin="0,0,0,8">
-                                    <TextBlock Text="Posición en Barra:" Foreground="#94A3B8" FontSize="10.5" VerticalAlignment="Center"/>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Button Content="Abajo Der" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="BottomRight"/>
-                                        <Button Content="Centro" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="BottomCenter"/>
-                                        <Button Content="Abajo Izq" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="BottomLeft"/>
-                                        <Button Content="Flotante" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="Floating"/>
-                                    </StackPanel>
-                                </Grid>
-
-                                <!-- Opacity Slider & Always-on-top -->
-                                <Grid>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                        <CheckBox Content="Siempre visible" Foreground="#94A3B8" FontSize="10.5" IsChecked="{Binding Settings.AlwaysOnTop}" Checked="AlwaysOnTop_Changed" Unchecked="AlwaysOnTop_Changed"/>
-                                    </StackPanel>
-
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                                        <TextBlock Text="Opacidad:" Foreground="#94A3B8" FontSize="10.5" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                        <Slider Width="90" Minimum="0.50" Maximum="1.0" Value="{Binding Settings.GlassOpacity}" ValueChanged="OpacitySlider_ValueChanged" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding FormattedOpacity}" Foreground="#38BDF8" FontSize="10.5" Width="30" Margin="4,0,0,0" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                </Grid>
-                            </StackPanel>
-                        </Border>
-
-                    </StackPanel>
-                </Grid>
-
-            </StackPanel>
+                </StackPanel>
             </Grid>
         </Border>
     </Grid>

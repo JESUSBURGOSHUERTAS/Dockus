@@ -15,6 +15,7 @@ public class AntigravityGeminiProvider : ITokenProvider
     public string DisplayName => "Gemini (Antigravity)";
     public string Description => "Monitor nativo en tiempo real de sesiones y tokens de Gemini en Antigravity";
     public string IconGlyph => "✦";
+    public string ShortCode => "AGY";
     public string AccentColorHex => "#38BDF8"; // Sky blue
 
     private readonly string _antigravityDir;
