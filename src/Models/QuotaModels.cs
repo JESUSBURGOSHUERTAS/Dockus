@@ -64,3 +64,4 @@ public class AntigravityQuotaSummary
     public string CompactClaudeGpt => ClaudeGptGroup?.WeeklyBucket != null ? $"{ClaudeGptGroup.WeeklyBucket.FormattedRemaining} Claude" : "100% Claude";
     public double CompactGeminiPercentage => GeminiGroup?.WeeklyBucket?.RemainingPercentage ?? 100.0;
 }
+
