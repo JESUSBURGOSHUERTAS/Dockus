@@ -44,7 +44,7 @@ Todo esto integrado en un diseño de cristal físico **Aero Glass** de última g
 - **🔮 Estética Aero Glass Moderna con Micropartículas**:
   - Fondo translúcido con desenfoque de cristal físico **DWM Acrylic BlurBehind** nativo de Windows.
   - Brillo especular biselado en el borde superior idéntico al vidrio de Windows 7 Aero.
-  - Lienzo de **micropartículas de luz viva** (cian, púrpura, menta) que flotan suavemente en el interior del cristal con un consumo de CPU del 0.0%.
+  - Lienzo de **micropartículas de luz viva** (cian, púrpura, menta) que flotan suavemente en el interior del cristal con un consumo de CPU ultra bajo (<0.5%).
 - **🧲 Acople Magnético a Esquinas y Barra de Tareas**:
   - Anclaje automático al ras de la esquina inferior derecha o izquierda de la pantalla, sin sombras cuadradas, sin rebordes indeseados y sin márgenes invisibles.
 - **📊 Panel Detallado Expandible (Flyout Dashboard)**:
