@@ -119,10 +119,10 @@ public partial class CircularGauge : UserControl
 
         ArcPath.Stroke = StrokeBrush;
 
-        const double size = 50.0;
-        const double radius = 20.0;
-        const double cx = size / 2.0;
-        const double cy = size / 2.0;
+        const double size = 34.0;
+        const double radius = 13.0;
+        const double cx = size / 2.0; // 17.0
+        const double cy = size / 2.0; // 17.0
 
         if (pct >= 99.5)
         {

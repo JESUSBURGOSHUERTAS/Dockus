@@ -184,8 +184,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public double MainGeminiPercentage => IsHourlyMode ? GeminiFiveHourPercentage : GeminiWeeklyPercentage;
     public string MainGeminiValueText => IsHourlyMode ? GeminiFiveHourText : GeminiWeeklyText;
     public string MainGeminiLabel => IsHourlyMode
-        ? (GeminiFiveHourCountdown == "Listo" ? "100% Libre" : $"Quedan {GeminiFiveHourCountdown}")
-        : (GeminiWeeklyCountdown == "Listo" ? "100% Libre" : $"Quedan {GeminiWeeklyCountdown}");
+        ? (GeminiFiveHourCountdown == "Listo" ? "100% Libre" : GeminiFiveHourCountdown)
+        : (GeminiWeeklyCountdown == "Listo" ? "100% Libre" : GeminiWeeklyCountdown);
     public Brush MainGeminiStroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(IsHourlyMode ? "#38BDF8" : "#10B981"));
     public string MainGeminiTooltip => $"GEMINI MODELS\n• Ventana 5 Horas: {GeminiFiveHourText} (Reinicia: {GeminiFiveHourCountdown})\n• Límite Semanal: {GeminiWeeklyText} (Reinicia: {GeminiWeeklyCountdown})";
 
@@ -198,14 +198,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public double MainClaudePercentage => IsHourlyMode ? ClaudeFiveHourPercentage : ClaudeWeeklyPercentage;
     public string MainClaudeValueText => IsHourlyMode ? ClaudeFiveHourText : ClaudeWeeklyText;
     public string MainClaudeLabel => IsHourlyMode
-        ? (ClaudeFiveHourCountdown == "Listo" ? "100% Libre" : $"Quedan {ClaudeFiveHourCountdown}")
-        : (ClaudeWeeklyCountdown == "Listo" ? "100% Libre" : $"Quedan {ClaudeWeeklyCountdown}");
+        ? (ClaudeFiveHourCountdown == "Listo" ? "100% Libre" : ClaudeFiveHourCountdown)
+        : (ClaudeWeeklyCountdown == "Listo" ? "100% Libre" : ClaudeWeeklyCountdown);
     public Brush MainClaudeStroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C084FC"));
     public string MainClaudeTooltip => $"CLAUDE & GPT MODELS\n• Ventana 5 Horas: {ClaudeFiveHourText} (Reinicia: {ClaudeFiveHourCountdown})\n• Límite Semanal: {ClaudeWeeklyText} (Reinicia: {ClaudeWeeklyCountdown})";
 
     public double MainArgonPercentage => ArgonWeeklyPercentage;
     public string MainArgonValueText => ArgonWeeklyText;
-    public string MainArgonLabel => ArgonWeeklyCountdown == "Listo" ? "100% Libre" : $"Quedan {ArgonWeeklyCountdown}";
+    public string MainArgonLabel => ArgonWeeklyCountdown == "Listo" ? "100% Libre" : ArgonWeeklyCountdown;
     public Brush MainArgonStroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
     public string MainArgonTooltip => $"GEMINI 4 ARGON\n• Límite Semanal: {ArgonWeeklyText} (Reinicia: {ArgonWeeklyCountdown})\n• Cuota dedicada de razonamiento rápido";
 
@@ -340,11 +340,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             if (snapped)
             {
                 var workArea = SystemParameters.WorkArea;
-                if (Math.Abs(Left + Width - (workArea.Right - TaskbarDockHelper.DockMargin - 16)) < 40)
+                if (Math.Abs(Left + Width - workArea.Right) < 45)
                     Settings.DockPosition = "BottomRight";
-                else if (Math.Abs(Left + Width / 2.0 - (workArea.Left + workArea.Width / 2.0)) < 40)
+                else if (Math.Abs(Left + Width / 2.0 - (workArea.Left + workArea.Width / 2.0)) < 45)
                     Settings.DockPosition = "BottomCenter";
-                else if (Math.Abs(Left - (workArea.Left + TaskbarDockHelper.DockMargin + 16)) < 40)
+                else if (Math.Abs(Left - workArea.Left) < 45)
                     Settings.DockPosition = "BottomLeft";
             }
             else
