@@ -4,17 +4,17 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="50" d:DesignWidth="52"
+             d:DesignHeight="54" d:DesignWidth="56"
              ClipToBounds="False">
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0" ClipToBounds="False">
         <!-- Top Header (e.g. GEMINI, CLAUDE) -->
         <TextBlock x:Name="TxtHeader" Text="GEMINI" Foreground="#94A3B8" FontSize="7.5" FontWeight="Bold"
                    HorizontalAlignment="Center" Margin="0,0,0,2" Visibility="Collapsed"/>
 
-        <!-- Circular Ring Container: 27x27 Compact & Unclipped -->
-        <Grid x:Name="ContainerGrid" Width="27" Height="27" HorizontalAlignment="Center" ClipToBounds="False">
-            <!-- Background Ring -->
-            <Ellipse x:Name="BgEllipse" Stroke="#253347" StrokeThickness="2.0" Width="20" Height="20"
+        <!-- Circular Ring Container: 32x32 with generous inner breathing room -->
+        <Grid x:Name="ContainerGrid" Width="32" Height="32" HorizontalAlignment="Center" ClipToBounds="False">
+            <!-- Background Ring (Diameter 24px, inner clear area 22px) -->
+            <Ellipse x:Name="BgEllipse" Stroke="#253347" StrokeThickness="2.0" Width="24" Height="24"
                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
             <!-- Foreground Arc -->
@@ -22,8 +22,8 @@
                   HorizontalAlignment="Center" VerticalAlignment="Center"
                   StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
 
-            <!-- Centered Percentage Text (7.5pt for clean, roomy fit) -->
-            <TextBlock x:Name="TxtValue" Text="100%" Foreground="#F8FAFC" FontSize="7.5" FontWeight="Bold"
+            <!-- Centered Percentage Text (8.0pt, comfortable spacing without collapsing) -->
+            <TextBlock x:Name="TxtValue" Text="100%" Foreground="#F8FAFC" FontSize="8.0" FontWeight="Bold"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
 
