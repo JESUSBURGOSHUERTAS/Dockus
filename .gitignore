@@ -2,13 +2,19 @@
 bin/
 obj/
 publish/
+.vs/
+.vscode/
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 
-## Logs
+## Local / Private Skills & Prompts
+skills/
+
+## Logs & Temp
 *.log
+*.tmp
 
 ## OS Files
 Thumbs.db
