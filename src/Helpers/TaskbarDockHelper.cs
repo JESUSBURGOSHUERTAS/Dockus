@@ -13,10 +13,10 @@ public static class TaskbarDockHelper
 
         var workArea = SystemParameters.WorkArea;
         double winWidth = window.ActualWidth > 0 ? window.ActualWidth : (double.IsNaN(window.Width) ? 490 : window.Width);
-        double winHeight = window.ActualHeight > 0 ? window.ActualHeight : (double.IsNaN(window.Height) ? 56 : window.Height);
+        double winHeight = window.ActualHeight > 0 ? window.ActualHeight : (double.IsNaN(window.Height) ? 58 : window.Height);
 
         if (winWidth <= 0) winWidth = 490;
-        if (winHeight <= 0) winHeight = 56;
+        if (winHeight <= 0) winHeight = 58;
 
         switch (dockPosition)
         {

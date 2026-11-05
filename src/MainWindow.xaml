@@ -188,7 +188,7 @@
                 <StackPanel Orientation="Vertical">
 
                     <!-- COMPACT DOCK BAR (CIRCULAR GAUGES & TIMEFRAME SWITCHER) -->
-                    <Grid x:Name="CompactBar" Height="54" Margin="8,0" Cursor="SizeAll" ClipToBounds="False">
+                    <Grid x:Name="CompactBar" Height="58" Margin="8,0" Cursor="SizeAll" ClipToBounds="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/> <!-- Brand & Mode Toggle -->
                             <ColumnDefinition Width="*"/>    <!-- Center Circular Gauges -->
