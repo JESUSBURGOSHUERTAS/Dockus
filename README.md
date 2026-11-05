@@ -23,7 +23,7 @@
 
 ## 🌟 ¿Qué es Dockus?
 
-**Dockus** es una barra de monitoreo inteligente y compacta concebida para desarrolladores, investigadores y entusiastas de la Inteligencia Artificial. Mientras trabajas en tu IDE (como Google Antigravity) o ejecutas tareas con modelos de lenguaje masivos, Dockus permanece discretamente acoplado sobre tu barra de tareas mostrándote con precisión matemática cuánto límite de uso te queda y exactamente cuántas horas y minutos faltan para que tu cuota se reinicie al 100%.
+**Dockus** es una barra de monitoreo inteligente y compacta concebida para **cualquier persona que use Inteligencia Artificial en su día a día**: programadores, creadores de contenido, investigadores, redactores o entusiastas de la IA. Mientras trabajas en tu editor, interactúas con modelos de lenguaje o ejecutas tareas complejas, Dockus permanece discretamente acoplado sobre tu barra de tareas mostrándote con precisión matemática cuánto límite de uso te queda y exactamente cuántas horas y minutos faltan para que tu cuota se reinicie al 100%.
 
 Todo esto integrado en un diseño de cristal físico **Aero Glass** de última generación, sin estorbar tu flujo de trabajo, con cero telemetría externa y 100% de ejecución local en tu máquina.
 
