@@ -15,7 +15,7 @@
         WindowStartupLocation="Manual"
         ResizeMode="NoResize"
         SizeToContent="Height"
-        Width="490"
+        Width="375"
         Loaded="Window_Loaded"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         MouseLeftButtonUp="Window_MouseLeftButtonUp">
@@ -160,15 +160,17 @@
             </Border.BorderBrush>
 
             <Grid ClipToBounds="False">
-                <!-- 1. Ambient Floating Micro-Particles Canvas (Aero Living Glass) -->
-                <controls:AeroParticlesCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch" IsHitTestVisible="False"/>
+                <!-- 1. Ambient Floating Micro-Particles Canvas (Clipped to Window CornerRadius) -->
+                <Border CornerRadius="8" ClipToBounds="True" IsHitTestVisible="False">
+                    <controls:AeroParticlesCanvas HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
+                </Border>
 
                 <!-- 2. Windows 7 Aero Glass Specular Gloss Sheen -->
-                <Border Height="24" VerticalAlignment="Top" CornerRadius="8 8 0 0" IsHitTestVisible="False">
+                <Border Height="26" VerticalAlignment="Top" CornerRadius="8 8 0 0" IsHitTestVisible="False">
                     <Border.Background>
                         <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                            <GradientStop Color="#28FFFFFF" Offset="0"/>
-                            <GradientStop Color="#08FFFFFF" Offset="0.6"/>
+                            <GradientStop Color="#22FFFFFF" Offset="0"/>
+                            <GradientStop Color="#06FFFFFF" Offset="0.65"/>
                             <GradientStop Color="#00FFFFFF" Offset="1"/>
                         </LinearGradientBrush>
                     </Border.Background>
@@ -188,11 +190,11 @@
                 <StackPanel Orientation="Vertical">
 
                     <!-- COMPACT DOCK BAR (CIRCULAR GAUGES & TIMEFRAME SWITCHER) -->
-                    <Grid x:Name="CompactBar" Height="58" Margin="8,0" Cursor="SizeAll" ClipToBounds="False">
+                    <Grid x:Name="CompactBar" Height="64" Margin="10,0" Cursor="SizeAll" ClipToBounds="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/> <!-- Brand & Mode Toggle -->
                             <ColumnDefinition Width="*"/>    <!-- Center Circular Gauges -->
-                            <ColumnDefinition Width="Auto"/> <!-- Right Badges & Controls -->
+                            <ColumnDefinition Width="Auto"/> <!-- Right Controls -->
                         </Grid.ColumnDefinitions>
 
                         <!-- Left: Brand Badge & Timeframe Toggle Pill (5h vs 7d) -->
@@ -239,7 +241,7 @@
                             </Border>
                         </StackPanel>
 
-                        <!-- Center: 3 COMPACT CIRCULAR GAUGES (Unclipped, Modern Aero Glass Style) -->
+                        <!-- Center: 3 COMPACT CIRCULAR GAUGES (Airy, Unclipped, Modern Aero Style) -->
                         <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">
                             
                             <!-- Circle 1: Gemini -->
@@ -277,24 +279,18 @@
 
                         </StackPanel>
 
-                        <!-- Right: Mode Badge + Expand + Close -->
-                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="4,0,0,0">
-                            <!-- Active Window Badge -->
-                            <Border Background="#1638BDF8" BorderBrush="#2538BDF8" BorderThickness="1" CornerRadius="5" Padding="5,2" Margin="0,0,4,0"
-                                    ToolTip="Modo activo y cuenta regresiva de reinicio">
-                                <TextBlock Text="{Binding ActiveWindowBadgeText}" Foreground="#38BDF8" FontWeight="Bold" FontSize="9"/>
-                            </Border>
-
+                        <!-- Right: Clean Minimal Controls (Expand + Close) -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="2,0,0,0">
                             <!-- Expand / Collapse Button -->
-                            <Button Style="{StaticResource IconBtnStyle}" Click="BtnToggleExpand_Click" Padding="4,2"
+                            <Button Style="{StaticResource IconBtnStyle}" Click="BtnToggleExpand_Click" Padding="4,3"
                                     ToolTip="Expandir panel detallado">
-                                <TextBlock Text="{Binding ExpandIconText}" FontSize="10" Foreground="#94A3B8"/>
+                                <TextBlock Text="{Binding ExpandIconText}" FontSize="10.5" Foreground="#94A3B8"/>
                             </Button>
 
                             <!-- Close Button -->
-                            <Button Style="{StaticResource IconBtnStyle}" Click="BtnClose_Click" Margin="2,0,0,0" Padding="4,2"
+                            <Button Style="{StaticResource IconBtnStyle}" Click="BtnClose_Click" Margin="2,0,0,0" Padding="4,3"
                                     ToolTip="Cerrar monitor">
-                                <TextBlock Text="✕" FontSize="9.5" Foreground="#64748B"/>
+                                <TextBlock Text="✕" FontSize="10" Foreground="#64748B"/>
                             </Button>
                         </StackPanel>
                     </Grid>

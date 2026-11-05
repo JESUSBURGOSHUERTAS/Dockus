@@ -62,16 +62,16 @@ public class AeroParticlesCanvas : FrameworkElement
     private void InitParticles()
     {
         _particles.Clear();
-        int count = 20;
-        double w = ActualWidth > 50 ? ActualWidth : 500;
-        double h = ActualHeight > 20 ? ActualHeight : 60;
+        int count = 16;
+        double w = ActualWidth > 50 ? ActualWidth : 400;
+        double h = ActualHeight > 20 ? ActualHeight : 64;
 
         Color[] colors = new[]
         {
-            Color.FromArgb(190, 56, 189, 248),  // Neon Cyan
-            Color.FromArgb(190, 192, 132, 252), // Electric Purple
-            Color.FromArgb(190, 52, 211, 153),  // Emerald Mint
-            Color.FromArgb(220, 248, 250, 252)  // Soft Crystal White
+            Color.FromArgb(140, 56, 189, 248),  // Neon Cyan
+            Color.FromArgb(140, 192, 132, 252), // Electric Purple
+            Color.FromArgb(140, 52, 211, 153),  // Emerald Mint
+            Color.FromArgb(150, 248, 250, 252)  // Soft Crystal White
         };
 
         for (int i = 0; i < count; i++)
@@ -80,11 +80,11 @@ public class AeroParticlesCanvas : FrameworkElement
             {
                 X = _rand.NextDouble() * w,
                 Y = _rand.NextDouble() * h,
-                Vx = (_rand.NextDouble() - 0.5) * 0.35,
-                Vy = -(_rand.NextDouble() * 0.22 + 0.08), // Gentle upward drift
-                Radius = _rand.NextDouble() * 1.5 + 0.8,
-                Alpha = _rand.NextDouble() * 0.5 + 0.15,
-                AlphaSpeed = (_rand.NextDouble() * 0.015 + 0.005) * (_rand.Next(2) == 0 ? 1 : -1),
+                Vx = (_rand.NextDouble() - 0.5) * 0.25,
+                Vy = -(_rand.NextDouble() * 0.18 + 0.05), // Very gentle upward drift
+                Radius = _rand.NextDouble() * 1.2 + 0.8,
+                Alpha = _rand.NextDouble() * 0.22 + 0.08,
+                AlphaSpeed = (_rand.NextDouble() * 0.01 + 0.003) * (_rand.Next(2) == 0 ? 1 : -1),
                 BaseColor = colors[_rand.Next(colors.Length)]
             });
         }
@@ -94,11 +94,11 @@ public class AeroParticlesCanvas : FrameworkElement
     {
         var now = DateTime.Now;
         double dt = (now - _lastRender).TotalSeconds;
-        if (dt < 0.028) return; // ~35 FPS cap for near-zero CPU usage
+        if (dt < 0.030) return; // ~33 FPS cap for zero CPU usage
         _lastRender = now;
 
-        double w = ActualWidth > 0 ? ActualWidth : 500;
-        double h = ActualHeight > 0 ? ActualHeight : 60;
+        double w = ActualWidth > 0 ? ActualWidth : 400;
+        double h = ActualHeight > 0 ? ActualHeight : 64;
 
         for (int i = 0; i < _particles.Count; i++)
         {
@@ -107,26 +107,26 @@ public class AeroParticlesCanvas : FrameworkElement
             p.Y += p.Vy;
 
             p.Alpha += p.AlphaSpeed;
-            if (p.Alpha > 0.65)
+            if (p.Alpha > 0.32)
             {
-                p.Alpha = 0.65;
+                p.Alpha = 0.32;
                 p.AlphaSpeed = -Math.Abs(p.AlphaSpeed);
             }
-            else if (p.Alpha < 0.08)
+            else if (p.Alpha < 0.05)
             {
-                p.Alpha = 0.08;
+                p.Alpha = 0.05;
                 p.AlphaSpeed = Math.Abs(p.AlphaSpeed);
             }
 
-            // Wrap around edges seamlessly
-            if (p.X < -5) p.X = w + 5;
-            if (p.X > w + 5) p.X = -5;
-            if (p.Y < -5)
+            // Wrap around edges smoothly
+            if (p.X < 0) p.X = w;
+            if (p.X > w) p.X = 0;
+            if (p.Y < 0)
             {
-                p.Y = h + 5;
+                p.Y = h;
                 p.X = _rand.NextDouble() * w;
             }
-            if (p.Y > h + 5) p.Y = -5;
+            if (p.Y > h) p.Y = 0;
 
             _particles[i] = p;
         }

@@ -12,11 +12,11 @@ public static class TaskbarDockHelper
         try { window.UpdateLayout(); } catch { }
 
         var workArea = SystemParameters.WorkArea;
-        double winWidth = window.ActualWidth > 0 ? window.ActualWidth : (double.IsNaN(window.Width) ? 490 : window.Width);
-        double winHeight = window.ActualHeight > 0 ? window.ActualHeight : (double.IsNaN(window.Height) ? 58 : window.Height);
+        double winWidth = window.ActualWidth > 0 ? window.ActualWidth : (double.IsNaN(window.Width) ? 375 : window.Width);
+        double winHeight = window.ActualHeight > 0 ? window.ActualHeight : (double.IsNaN(window.Height) ? 64 : window.Height);
 
-        if (winWidth <= 0) winWidth = 490;
-        if (winHeight <= 0) winHeight = 58;
+        if (winWidth <= 0) winWidth = 375;
+        if (winHeight <= 0) winHeight = 64;
 
         switch (dockPosition)
         {
