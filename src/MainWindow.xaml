@@ -15,7 +15,7 @@
         WindowStartupLocation="Manual"
         ResizeMode="NoResize"
         SizeToContent="Height"
-        Width="375"
+        Width="390"
         Loaded="Window_Loaded"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         MouseLeftButtonUp="Window_MouseLeftButtonUp">
@@ -190,7 +190,7 @@
                 <StackPanel Orientation="Vertical">
 
                     <!-- COMPACT DOCK BAR (CIRCULAR GAUGES & TIMEFRAME SWITCHER) -->
-                    <Grid x:Name="CompactBar" Height="64" Margin="10,0" Cursor="SizeAll" ClipToBounds="False">
+                    <Grid x:Name="CompactBar" Height="68" Margin="10,0" Cursor="SizeAll" ClipToBounds="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/> <!-- Brand & Mode Toggle -->
                             <ColumnDefinition Width="*"/>    <!-- Center Circular Gauges -->

@@ -11,19 +11,19 @@
         <TextBlock x:Name="TxtHeader" Text="GEMINI" Foreground="#94A3B8" FontSize="7.5" FontWeight="Bold"
                    HorizontalAlignment="Center" Margin="0,0,0,2" Visibility="Collapsed"/>
 
-        <!-- Circular Ring Container: 32x32 with generous inner breathing room -->
-        <Grid x:Name="ContainerGrid" Width="32" Height="32" HorizontalAlignment="Center" ClipToBounds="False">
-            <!-- Background Ring (Diameter 24px, inner clear area 22px) -->
-            <Ellipse x:Name="BgEllipse" Stroke="#253347" StrokeThickness="2.0" Width="24" Height="24"
+        <!-- Circular Ring Container: 34x34 (ring diameter 30px, inner clear area ~28px) -->
+        <Grid x:Name="ContainerGrid" Width="34" Height="34" HorizontalAlignment="Center" ClipToBounds="False">
+            <!-- Background Ring (Diameter 30px) -->
+            <Ellipse x:Name="BgEllipse" Stroke="#253347" StrokeThickness="2.0" Width="32" Height="32"
                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
             <!-- Foreground Arc -->
             <Path x:Name="ArcPath" Stroke="#10B981" StrokeThickness="2.0"
-                  HorizontalAlignment="Center" VerticalAlignment="Center"
+                  HorizontalAlignment="Left" VerticalAlignment="Top"
                   StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
 
-            <!-- Centered Percentage Text (8.0pt, comfortable spacing without collapsing) -->
-            <TextBlock x:Name="TxtValue" Text="100%" Foreground="#F8FAFC" FontSize="8.0" FontWeight="Bold"
+            <!-- Centered Percentage Text (7.5pt, with clear margin to the ring) -->
+            <TextBlock x:Name="TxtValue" Text="100%" Foreground="#F8FAFC" FontSize="7.5" FontWeight="Bold"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
 
