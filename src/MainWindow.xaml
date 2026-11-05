@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:converters="clr-namespace:Dockus.Converters"
         mc:Ignorable="d"
-        Title="Dockus - AI Token Glass Monitor"
+        Title="Dockus - AI Quota &amp; Token Monitor"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -14,7 +14,7 @@
         WindowStartupLocation="Manual"
         ResizeMode="NoResize"
         SizeToContent="Height"
-        Width="500"
+        Width="520"
         Loaded="Window_Loaded"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         MouseLeftButtonUp="Window_MouseLeftButtonUp">
@@ -26,7 +26,6 @@
 
         <!-- Futuristic Glowing Glass Brushes -->
         <SolidColorBrush x:Key="GlassBackground" Color="#E60D131F"/>
-        <SolidColorBrush x:Key="GlassBorder" Color="#3338BDF8"/>
         <SolidColorBrush x:Key="CardBackground" Color="#221E293B"/>
         <SolidColorBrush x:Key="CardBorder" Color="#2638BDF8"/>
         <SolidColorBrush x:Key="TextPrimary" Color="#F8FAFC"/>
@@ -69,6 +68,36 @@
             </Setter>
         </Style>
 
+        <!-- Active View Tab Button Style -->
+        <Style x:Key="ViewTabBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="BorderBrush" Value="#1E293B"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8" SnapsToDevicePixels="True">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1E293B"/>
+                                <Setter Property="Foreground" Value="#F8FAFC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Compact Icon Button Style -->
         <Style x:Key="IconBtnStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -92,34 +121,6 @@
             </Setter>
         </Style>
 
-        <!-- Provider Tab Radio Button Style -->
-        <Style x:Key="ProviderTabRadio" TargetType="RadioButton">
-            <Setter Property="Foreground" Value="#94A3B8"/>
-            <Setter Property="FontSize" Value="10"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="4,4"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="border" Background="Transparent" CornerRadius="6" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#1E293B"/>
-                                <Setter Property="Foreground" Value="#38BDF8"/>
-                            </Trigger>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Foreground" Value="#F8FAFC"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
         <!-- Custom ProgressBar Style -->
         <Style x:Key="NeonProgressBarStyle" TargetType="ProgressBar">
             <Setter Property="Background" Value="#1E293B"/>
@@ -134,9 +135,9 @@
                             <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="2.5">
                                 <Border.Background>
                                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                        <GradientStop Color="#38BDF8" Offset="0"/>
-                                        <GradientStop Color="#818CF8" Offset="0.7"/>
-                                        <GradientStop Color="#C084FC" Offset="1"/>
+                                        <GradientStop Color="#10B981" Offset="0"/>
+                                        <GradientStop Color="#38BDF8" Offset="0.5"/>
+                                        <GradientStop Color="#818CF8" Offset="1"/>
                                     </LinearGradientBrush>
                                 </Border.Background>
                             </Border>
@@ -147,7 +148,7 @@
         </Style>
     </Window.Resources>
 
-    <!-- Main Container with Outer Glow and Frosted Acrylic Glass -->
+    <!-- Main Outer Container with Glow and Glassmorphism -->
     <Grid Margin="12">
         <Border x:Name="MainGlassBorder"
                 Background="{StaticResource GlassBackground}"
@@ -168,228 +169,271 @@
             <StackPanel Orientation="Vertical">
 
                 <!-- 1. COMPACT DOCK BAR (Always Visible / Sits above Taskbar) -->
-                <Grid x:Name="CompactBar" Height="50" Margin="14,0" Cursor="SizeAll">
+                <Grid x:Name="CompactBar" Height="52" Margin="14,0" Cursor="SizeAll">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/> <!-- Provider Badge -->
-                        <ColumnDefinition Width="*"/>    <!-- Center Context & Bar -->
-                        <ColumnDefinition Width="Auto"/> <!-- Cache & Controls -->
+                        <ColumnDefinition Width="Auto"/> <!-- Brand Badge -->
+                        <ColumnDefinition Width="*"/>    <!-- Center Quotas & Neon Bar -->
+                        <ColumnDefinition Width="Auto"/> <!-- Right Badges & Controls -->
                     </Grid.ColumnDefinitions>
 
-                    <!-- Left: Provider Brand Badge with Pulse Indicator -->
+                    <!-- Left: Brand Badge with Active Indicator -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
                         <Border Background="#1E293B" BorderBrush="#38BDF8" BorderThickness="1" CornerRadius="8" Padding="7,4">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Usage.IconGlyph}" Foreground="#38BDF8" FontWeight="Bold" FontSize="13" Margin="0,0,5,0"/>
-                                <TextBlock Text="{Binding CurrentProviderShortName}" Foreground="#F8FAFC" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
+                                <TextBlock Text="✦" Foreground="#38BDF8" FontWeight="Bold" FontSize="13" Margin="0,0,5,0"/>
+                                <TextBlock Text="ANTIGRAVITY" Foreground="#F8FAFC" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
-                        <!-- Pulse Indicator (Green when active, Sky Blue when idle) -->
-                        <Ellipse x:Name="SyncDot" Width="7" Height="7" Margin="7,0,0,0" VerticalAlignment="Center"
-                                 Fill="{Binding Usage.IsActiveNow, Converter={StaticResource PercentToBrushConverter}, ConverterParameter=dot}">
+                        <!-- Pulse Dot (Green when connected) -->
+                        <Ellipse Width="7" Height="7" Margin="7,0,0,0" VerticalAlignment="Center" Fill="#10B981">
                             <Ellipse.Effect>
                                 <DropShadowEffect Color="#10B981" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
                             </Ellipse.Effect>
                         </Ellipse>
                     </StackPanel>
 
-                    <!-- Center: Context Remaining & Progress Bar -->
+                    <!-- Center: Quotas Remaining & Progress Bar -->
                     <Grid Grid.Column="1" VerticalAlignment="Center" Margin="4,0,10,0">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Info Header -->
+                        <!-- Text Gauges -->
                         <Grid Grid.Row="0" Margin="0,0,0,4">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                <TextBlock Text="Contexto: " Foreground="#94A3B8" FontSize="10.5"/>
-                                <TextBlock Text="{Binding Usage.FormattedCurrentContext}" Foreground="#F8FAFC" FontWeight="SemiBold" FontSize="10.5"/>
-                                <TextBlock Text=" / " Foreground="#64748B" FontSize="10.5"/>
-                                <TextBlock Text="{Binding Usage.FormattedMaxContext}" Foreground="#94A3B8" FontSize="10.5"/>
+                                <TextBlock Text="Gemini Semanal: " Foreground="#94A3B8" FontSize="10.5"/>
+                                <TextBlock Text="{Binding GeminiWeeklyText}" Foreground="#10B981" FontWeight="Bold" FontSize="11"/>
+                                <TextBlock Text=" libre" Foreground="#64748B" FontSize="10"/>
+                                <TextBlock Text=" · 5h: " Foreground="#94A3B8" FontSize="10.5" Margin="4,0,0,0"/>
+                                <TextBlock Text="{Binding GeminiFiveHourText}" Foreground="#38BDF8" FontWeight="Bold" FontSize="11"/>
                             </StackPanel>
 
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                <TextBlock Text="{Binding Usage.FormattedRemaining}" Foreground="#38BDF8" FontWeight="Bold" FontSize="10.5"/>
-                                <TextBlock Text=" libres (" Foreground="#94A3B8" FontSize="10.5"/>
-                                <TextBlock Text="{Binding Usage.FormattedPercentRemaining}" Foreground="#10B981" FontWeight="SemiBold" FontSize="10.5"/>
-                                <TextBlock Text=")" Foreground="#94A3B8" FontSize="10.5"/>
+                                <TextBlock Text="Claude/GPT: " Foreground="#94A3B8" FontSize="10.5"/>
+                                <TextBlock Text="{Binding ClaudeWeeklyText}" Foreground="#C084FC" FontWeight="Bold" FontSize="11"/>
                             </StackPanel>
                         </Grid>
 
-                        <!-- Progress Bar -->
+                        <!-- Neon Progress Bar for Gemini Weekly Limit -->
                         <ProgressBar Grid.Row="1"
                                      Style="{StaticResource NeonProgressBarStyle}"
-                                     Value="{Binding Usage.ContextUsagePercentage, Mode=OneWay}"
+                                     Value="{Binding GeminiWeeklyPercentage, Mode=OneWay}"
                                      Maximum="100"
                                      Minimum="0"/>
                     </Grid>
 
-                    <!-- Right: Cache Pill + Expand Button + Close -->
+                    <!-- Right: Reset Badge + Expand + Close -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- Cache Pill Badge -->
-                        <Border Background="#1A10B981" BorderBrush="#3310B981" BorderThickness="1" CornerRadius="6" Padding="6,3" Margin="0,0,6,0"
-                                ToolTip="Ahorro de tokens gracias a Prompt Caching">
+                        <!-- Reset Time Badge -->
+                        <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Padding="6,3" Margin="0,0,6,0"
+                                ToolTip="Tiempo para que el límite semanal se reinicie al 100%">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⚡ " Foreground="#10B981" FontSize="10"/>
-                                <TextBlock Text="{Binding Usage.FormattedCacheHit}" Foreground="#10B981" FontWeight="Bold" FontSize="10"/>
+                                <TextBlock Text="⏳ " Foreground="#38BDF8" FontSize="10"/>
+                                <TextBlock Text="{Binding GeminiWeeklyResetText}" Foreground="#38BDF8" FontWeight="Bold" FontSize="10"/>
                             </StackPanel>
                         </Border>
 
                         <!-- Expand/Collapse Button -->
                         <Button Style="{StaticResource IconBtnStyle}" Click="BtnToggleExpand_Click"
-                                ToolTip="Expandir / colapsar panel detallado de tokens">
+                                ToolTip="Expandir panel detallado de cuotas y tokens">
                             <TextBlock Text="{Binding ExpandIconText}" FontSize="12" Foreground="#94A3B8"/>
                         </Button>
 
                         <!-- Close Button -->
                         <Button Style="{StaticResource IconBtnStyle}" Click="BtnClose_Click" Margin="2,0,0,0"
-                                ToolTip="Cerrar monitor">
+                                ToolTip="Cerrar Dockus">
                             <TextBlock Text="✕" FontSize="10" Foreground="#64748B"/>
                         </Button>
-
-                        <!-- Drag Grab Handle -->
-                        <TextBlock Text="⋮⋮" Foreground="#475569" FontSize="13" VerticalAlignment="Center" Margin="3,0,0,0" ToolTip="Arrastrar para mover (Auto-snap a barra)"/>
                     </StackPanel>
                 </Grid>
 
-                <!-- 2. EXPANDED FLYOUT DASHBOARD (Visible when IsExpanded == True) -->
+                <!-- 2. EXPANDED FLYOUT DASHBOARD -->
                 <Grid x:Name="ExpandedFlyout" Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}" Margin="14,0,14,14">
                     <StackPanel Orientation="Vertical">
 
                         <Separator Background="#2638BDF8" Height="1" Margin="0,0,0,12"/>
 
-                        <!-- Conversation Title & Real-Time Step Header -->
+                        <!-- Navigation Bar: Switch between Quotas & Tokens -->
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="{Binding Usage.ConversationTitle}" Foreground="#F8FAFC" FontWeight="Bold" FontSize="13" TextTrimming="CharacterEllipsis"/>
-                                <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                    <TextBlock Text="Sesión Antigravity: " Foreground="#64748B" FontSize="10.5"/>
-                                    <TextBlock Text="{Binding ShortConversationId}" Foreground="#94A3B8" FontSize="10.5" FontFamily="Consolas"/>
-                                    <TextBlock Text=" · " Foreground="#64748B" FontSize="10.5"/>
-                                    <TextBlock Text="{Binding Usage.StepCount, StringFormat='Paso {0}'}" Foreground="#38BDF8" FontWeight="SemiBold" FontSize="10.5"/>
-                                </StackPanel>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <Button Content="✦ Cuotas y Límites (Semanal/5h)" Style="{StaticResource ViewTabBtnStyle}" Margin="0,0,6,0" Click="BtnTabQuotas_Click"/>
+                                <Button Content="✦ Tokens y Contexto" Style="{StaticResource ViewTabBtnStyle}" Click="BtnTabTokens_Click"/>
                             </StackPanel>
 
-                            <!-- Manual Refresh Button -->
+                            <!-- Manual Force Refresh -->
                             <Button Grid.Column="1" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnRefresh_Click" VerticalAlignment="Center">
-                                <TextBlock Text="↻ Actualizar" FontSize="10.5"/>
+                                <TextBlock Text="↻ Sincronizar" FontSize="10.5"/>
                             </Button>
                         </Grid>
 
-                        <!-- Provider Switcher Tabs (Gemini, API, OpenAI, Claude, DeepSeek) -->
-                        <Border Background="#0F172A" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="3" Margin="0,0,0,14">
-                            <UniformGrid Rows="1">
-                                <RadioButton Content="✦ Antigravity" Style="{StaticResource ProviderTabRadio}" IsChecked="{Binding IsProviderAntigravity, Mode=OneWay}" Checked="ProviderRadio_Checked" Tag="antigravity_gemini"/>
-                                <RadioButton Content="✦ Gemini API" Style="{StaticResource ProviderTabRadio}" IsChecked="{Binding IsProviderGeminiApi, Mode=OneWay}" Checked="ProviderRadio_Checked" Tag="gemini_api"/>
-                                <RadioButton Content="⚙ OpenAI" Style="{StaticResource ProviderTabRadio}" IsChecked="{Binding IsProviderOpenAi, Mode=OneWay}" Checked="ProviderRadio_Checked" Tag="openai"/>
-                                <RadioButton Content="✻ Claude" Style="{StaticResource ProviderTabRadio}" IsChecked="{Binding IsProviderClaude, Mode=OneWay}" Checked="ProviderRadio_Checked" Tag="claude"/>
-                                <RadioButton Content="🐋 DeepSeek" Style="{StaticResource ProviderTabRadio}" IsChecked="{Binding IsProviderDeepSeek, Mode=OneWay}" Checked="ProviderRadio_Checked" Tag="deepseek"/>
-                            </UniformGrid>
-                        </Border>
+                        <!-- VIEW 1: OFFICIAL QUOTAS (Weekly & 5-Hour Limits) -->
+                        <StackPanel Visibility="{Binding ShowQuotasView, Converter={StaticResource BoolToVis}}">
 
-                        <!-- 4 Core Metric Glass Cards (Grid 2x2) -->
-                        <Grid Margin="0,0,0,14">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="8"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="8"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-
-                            <!-- Card 1: Ventana de Contexto (Ocupado) -->
-                            <Border Grid.Row="0" Grid.Column="0" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                            <!-- Section 1: Gemini Models -->
+                            <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,0,0,10">
                                 <StackPanel>
-                                    <TextBlock Text="VENTANA DE CONTEXTO" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Usage.FormattedCurrentContext}" Foreground="#F8FAFC" FontSize="18" FontWeight="Bold"/>
-                                        <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
-                                    </StackPanel>
-                                    <TextBlock Text="{Binding Usage.FormattedPercentUsed, StringFormat={}{0} del límite total}" Foreground="#38BDF8" FontSize="10" Margin="0,2,0,0"/>
+                                    <Grid Margin="0,0,0,8">
+                                        <TextBlock Text="GEMINI MODELS" Foreground="#F8FAFC" FontSize="13" FontWeight="Bold"/>
+                                        <TextBlock Text="Flash &amp; Pro" Foreground="#64748B" FontSize="11" HorizontalAlignment="Right"/>
+                                    </Grid>
+
+                                    <!-- Weekly Limit -->
+                                    <Border Background="#111827" CornerRadius="8" Padding="10,8" Margin="0,0,0,8">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <Grid Grid.Row="0" Margin="0,0,0,4">
+                                                <TextBlock Text="Weekly Limit Remaining" Foreground="#94A3B8" FontSize="11" FontWeight="SemiBold"/>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                    <TextBlock Text="{Binding GeminiWeeklyText}" Foreground="#10B981" FontSize="14" FontWeight="Bold"/>
+                                                    <TextBlock Text=" restante" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="2,0,0,1"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <ProgressBar Grid.Row="1" Style="{StaticResource NeonProgressBarStyle}" Height="6"
+                                                         Value="{Binding GeminiWeeklyPercentage, Mode=OneWay}" Maximum="100" Minimum="0" Margin="0,2,0,6"/>
+
+                                            <TextBlock Grid.Row="2" Text="{Binding GeminiWeeklyDesc}" Foreground="#64748B" FontSize="10.5" TextWrapping="Wrap"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Five Hour Limit -->
+                                    <Border Background="#111827" CornerRadius="8" Padding="10,8">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
+
+                                            <Grid Grid.Row="0" Margin="0,0,0,4">
+                                                <TextBlock Text="Five Hour Limit Remaining" Foreground="#94A3B8" FontSize="11" FontWeight="SemiBold"/>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                    <TextBlock Text="{Binding GeminiFiveHourText}" Foreground="#38BDF8" FontSize="14" FontWeight="Bold"/>
+                                                    <TextBlock Text=" restante" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="2,0,0,1"/>
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <ProgressBar Grid.Row="1" Style="{StaticResource NeonProgressBarStyle}" Height="6"
+                                                         Value="{Binding GeminiFiveHourPercentage, Mode=OneWay}" Maximum="100" Minimum="0" Margin="0,2,0,6"/>
+
+                                            <TextBlock Grid.Row="2" Text="{Binding GeminiFiveHourResetText, StringFormat='Se reinicia en {0}'}" Foreground="#64748B" FontSize="10.5"/>
+                                        </Grid>
+                                    </Border>
                                 </StackPanel>
                             </Border>
 
-                            <!-- Card 2: Cuánto me Queda (Tokens Restantes) -->
-                            <Border Grid.Row="0" Grid.Column="2" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                                <StackPanel>
-                                    <TextBlock Text="CUÁNTO ME QUEDA" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Usage.FormattedRemaining}" Foreground="#10B981" FontSize="18" FontWeight="Bold"/>
-                                        <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
-                                    </StackPanel>
-                                    <TextBlock Text="{Binding Usage.FormattedPercentRemaining, StringFormat={}{0} libre antes de compactar}" Foreground="#10B981" FontSize="10" Margin="0,2,0,0"/>
-                                </StackPanel>
-                            </Border>
+                            <!-- Section 2: Claude & GPT Models -->
+                            <Border Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="12" Padding="14,10" Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                            <!-- Card 3: Ahorro por Cache Gemini -->
-                            <Border Grid.Row="2" Grid.Column="0" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                                <StackPanel>
-                                    <TextBlock Text="AHORRO PROMPT CACHE" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding FormattedLastTurnCache}" Foreground="#C084FC" FontSize="18" FontWeight="Bold"/>
-                                        <TextBlock Text=" en turno" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+                                    <StackPanel Grid.Column="0" Margin="0,0,6,0">
+                                        <TextBlock Text="CLAUDE &amp; GPT MODELS" Foreground="#F8FAFC" FontSize="11.5" FontWeight="Bold" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Weekly Limit Remaining" Foreground="#94A3B8" FontSize="10.5"/>
+                                        <TextBlock Text="{Binding ClaudeWeeklyText}" Foreground="#C084FC" FontSize="18" FontWeight="Bold" Margin="0,2,0,0"/>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding Usage.FormattedCacheHit, StringFormat='⚡ Tasa acierto: {0}'}" Foreground="#A855F7" FontSize="10" Margin="0,2,0,0"/>
-                                </StackPanel>
-                            </Border>
 
-                            <!-- Card 4: Consumo Total de Hoy -->
-                            <Border Grid.Row="2" Grid.Column="2" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
-                                <StackPanel>
-                                    <TextBlock Text="CONSUMO TOTAL HOY" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Usage.FormattedTodayTotal}" Foreground="#F59E0B" FontSize="18" FontWeight="Bold"/>
-                                        <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+                                    <StackPanel Grid.Column="1" Margin="6,0,0,0">
+                                        <TextBlock Text="GEMINI 4 ARGON" Foreground="#F8FAFC" FontSize="11.5" FontWeight="Bold" Margin="0,0,0,4"/>
+                                        <TextBlock Text="Argon Weekly Limit" Foreground="#94A3B8" FontSize="10.5"/>
+                                        <TextBlock Text="{Binding ArgonWeeklyText}" Foreground="#38BDF8" FontSize="18" FontWeight="Bold" Margin="0,2,0,0"/>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding TodayBreakdownText}" Foreground="#94A3B8" FontSize="9.5" Margin="0,2,0,0"/>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-
-                        <!-- Recent Conversations Section -->
-                        <Border Background="#111827" BorderBrush="#1F2937" BorderThickness="1" CornerRadius="10" Padding="10,8" Margin="0,0,0,14">
-                            <StackPanel>
-                                <Grid Margin="0,0,0,6">
-                                    <TextBlock Text="CONVERSACIONES RECIENTES" Foreground="#64748B" FontSize="9.5" FontWeight="Bold"/>
-                                    <TextBlock Text="Tokens estimados" HorizontalAlignment="Right" Foreground="#64748B" FontSize="9.5"/>
                                 </Grid>
+                            </Border>
+                        </StackPanel>
 
-                                <ItemsControl ItemsSource="{Binding RecentConversations}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Background="#1E293B" CornerRadius="6" Padding="8,5" Margin="0,2">
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*"/>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <StackPanel Grid.Column="0">
-                                                        <TextBlock Text="{Binding Title}" Foreground="#F1F5F9" FontSize="11" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
-                                                        <StackPanel Orientation="Horizontal" Margin="0,1,0,0">
-                                                            <TextBlock Text="{Binding FormattedRelativeTime}" Foreground="#64748B" FontSize="9.5"/>
-                                                            <TextBlock Text=" · " Foreground="#475569" FontSize="9.5"/>
-                                                            <TextBlock Text="{Binding StepCount, StringFormat={}{0} pasos}" Foreground="#94A3B8" FontSize="9.5"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-                                                    <Border Grid.Column="1" Background="#0F172A" CornerRadius="4" Padding="6,2" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding FormattedContext, StringFormat={}{0} tokens}" Foreground="#38BDF8" FontSize="10.5" FontWeight="SemiBold"/>
-                                                    </Border>
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </StackPanel>
-                        </Border>
+                        <!-- VIEW 2: LIVE SESSION TOKENS -->
+                        <StackPanel Visibility="{Binding ShowTokensView, Converter={StaticResource BoolToVis}}">
+                            <!-- Conversation Title Header -->
+                            <Border Background="#111827" CornerRadius="8" Padding="10,6" Margin="0,0,0,10">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Usage.ConversationTitle}" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12.5" TextTrimming="CharacterEllipsis"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                        <TextBlock Text="Sesión Antigravity: " Foreground="#64748B" FontSize="10"/>
+                                        <TextBlock Text="{Binding ShortConversationId}" Foreground="#94A3B8" FontSize="10" FontFamily="Consolas"/>
+                                        <TextBlock Text=" · " Foreground="#64748B" FontSize="10"/>
+                                        <TextBlock Text="{Binding Usage.StepCount, StringFormat=Paso {0}}" Foreground="#38BDF8" FontWeight="SemiBold" FontSize="10"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 4 Core Metric Cards (Grid 2x2) -->
+                            <Grid Margin="0,0,0,10">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="8"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="8"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Card 1: Ventana de Contexto -->
+                                <Border Grid.Row="0" Grid.Column="0" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                    <StackPanel>
+                                        <TextBlock Text="VENTANA DE CONTEXTO" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Usage.FormattedCurrentContext}" Foreground="#F8FAFC" FontSize="18" FontWeight="Bold"/>
+                                            <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Usage.FormattedPercentUsed, StringFormat={}{0} del límite}" Foreground="#38BDF8" FontSize="10" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Card 2: Tokens Libres -->
+                                <Border Grid.Row="0" Grid.Column="2" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                    <StackPanel>
+                                        <TextBlock Text="CUÁNTO ME QUEDA" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Usage.FormattedRemaining}" Foreground="#10B981" FontSize="18" FontWeight="Bold"/>
+                                            <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Usage.FormattedPercentRemaining, StringFormat={}{0} libre}" Foreground="#10B981" FontSize="10" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Card 3: Cache Prompt -->
+                                <Border Grid.Row="2" Grid.Column="0" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                    <StackPanel>
+                                        <TextBlock Text="AHORRO PROMPT CACHE" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding FormattedLastTurnCache}" Foreground="#C084FC" FontSize="18" FontWeight="Bold"/>
+                                            <TextBlock Text=" en turno" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Usage.FormattedCacheHit, StringFormat=⚡ Tasa acierto: {0}}" Foreground="#A855F7" FontSize="10" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Card 4: Consumo Hoy -->
+                                <Border Grid.Row="2" Grid.Column="2" Background="{StaticResource CardBackground}" BorderBrush="{StaticResource CardBorder}" BorderThickness="1" CornerRadius="10" Padding="12,10">
+                                    <StackPanel>
+                                        <TextBlock Text="CONSUMO TOTAL HOY" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding Usage.FormattedTodayTotal}" Foreground="#F59E0B" FontSize="18" FontWeight="Bold"/>
+                                            <TextBlock Text=" tokens" Foreground="#64748B" FontSize="11" VerticalAlignment="Bottom" Margin="4,0,0,2"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding TodayBreakdownText}" Foreground="#94A3B8" FontSize="9.5" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
 
                         <!-- Settings & Docking Controls Footer -->
                         <Border Background="#0F172A" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="10" Padding="10,8">
@@ -402,17 +446,6 @@
                                         <Button Content="Centro" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="BottomCenter"/>
                                         <Button Content="Abajo Izq" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="BottomLeft"/>
                                         <Button Content="Flotante" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="6,3" Click="BtnDock_Click" Tag="Floating"/>
-                                    </StackPanel>
-                                </Grid>
-
-                                <!-- Limit Context Selector -->
-                                <Grid Margin="0,0,0,8">
-                                    <TextBlock Text="Límite Ventana:" Foreground="#94A3B8" FontSize="10.5" VerticalAlignment="Center"/>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                        <Button Content="1M Flash" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="5,2" Click="BtnLimit_Click" Tag="1000000"/>
-                                        <Button Content="2M Pro" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="5,2" Click="BtnLimit_Click" Tag="2000000"/>
-                                        <Button Content="200k Claude" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="5,2" Click="BtnLimit_Click" Tag="200000"/>
-                                        <Button Content="128k GPT" Style="{StaticResource GlassBtnStyle}" Margin="2,0" Padding="5,2" Click="BtnLimit_Click" Tag="128000"/>
                                     </StackPanel>
                                 </Grid>
 

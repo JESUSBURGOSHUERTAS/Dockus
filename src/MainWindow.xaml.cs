@@ -1,7 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,8 +16,31 @@ namespace Dockus;
 public partial class MainWindow : Window, INotifyPropertyChanged
 {
     private readonly ProviderManager _providerManager = new();
+    private readonly AntigravityQuotaService _quotaService = new();
     private DispatcherTimer? _refreshTimer;
-    private FileSystemWatcher? _antigravityWatcher;
+    private int _tickCount = 0;
+
+    private AntigravityQuotaSummary _quotas = new();
+    public AntigravityQuotaSummary Quotas
+    {
+        get => _quotas;
+        set
+        {
+            _quotas = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(GeminiWeeklyPercentage));
+            OnPropertyChanged(nameof(GeminiFiveHourPercentage));
+            OnPropertyChanged(nameof(ClaudeWeeklyPercentage));
+            OnPropertyChanged(nameof(ArgonWeeklyPercentage));
+            OnPropertyChanged(nameof(GeminiWeeklyText));
+            OnPropertyChanged(nameof(GeminiFiveHourText));
+            OnPropertyChanged(nameof(ClaudeWeeklyText));
+            OnPropertyChanged(nameof(ArgonWeeklyText));
+            OnPropertyChanged(nameof(GeminiWeeklyResetText));
+            OnPropertyChanged(nameof(GeminiFiveHourResetText));
+            OnPropertyChanged(nameof(GeminiWeeklyDesc));
+        }
+    }
 
     private TokenUsageSnapshot _usage = new();
     public TokenUsageSnapshot Usage
@@ -76,32 +98,38 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    private bool _showQuotasView = true;
+    public bool ShowQuotasView
+    {
+        get => _showQuotasView;
+        set
+        {
+            if (_showQuotasView != value)
+            {
+                _showQuotasView = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowTokensView));
+            }
+        }
+    }
+
+    public bool ShowTokensView => !_showQuotasView;
+
     public string ExpandIconText => IsExpanded ? "▲" : "▼";
 
-    public string CurrentProviderShortName
+    public string CurrentProviderShortName => Settings.ActiveProviderId switch
     {
-        get
-        {
-            return Settings.ActiveProviderId switch
-            {
-                "antigravity_gemini" => "GEMINI IDE",
-                "gemini_api" => "GEMINI API",
-                "openai" => "OPENAI",
-                "claude" => "CLAUDE",
-                "deepseek" => "DEEPSEEK",
-                _ => "GEMINI"
-            };
-        }
-    }
+        "antigravity_gemini" => "GEMINI IDE",
+        "gemini_api" => "GEMINI API",
+        "openai" => "OPENAI",
+        "claude" => "CLAUDE",
+        "deepseek" => "DEEPSEEK",
+        _ => "GEMINI"
+    };
 
-    public string ShortConversationId
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(Usage.ConversationId)) return "n/a";
-            return Usage.ConversationId.Length > 8 ? Usage.ConversationId[..8] : Usage.ConversationId;
-        }
-    }
+    public string ShortConversationId => string.IsNullOrEmpty(Usage.ConversationId)
+        ? "n/a"
+        : (Usage.ConversationId.Length > 8 ? Usage.ConversationId[..8] : Usage.ConversationId);
 
     public string FormattedLastTurnCache => TokenUsageSnapshot.FormatNumber(Usage.LastTurnCacheTokens);
 
@@ -118,12 +146,22 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     public string FormattedOpacity => $"{(int)(Settings.GlassOpacity * 100)}%";
 
-    // Provider Radios Booleans
-    public bool IsProviderAntigravity => Settings.ActiveProviderId == "antigravity_gemini";
-    public bool IsProviderGeminiApi => Settings.ActiveProviderId == "gemini_api";
-    public bool IsProviderOpenAi => Settings.ActiveProviderId == "openai";
-    public bool IsProviderClaude => Settings.ActiveProviderId == "claude";
-    public bool IsProviderDeepSeek => Settings.ActiveProviderId == "deepseek";
+    // Quotas formatted helpers
+    public double GeminiWeeklyPercentage => Quotas.GeminiGroup?.WeeklyRemainingPercentage ?? 100.0;
+    public double GeminiFiveHourPercentage => Quotas.GeminiGroup?.FiveHourRemainingPercentage ?? 100.0;
+    public double ClaudeWeeklyPercentage => Quotas.ClaudeGptGroup?.WeeklyRemainingPercentage ?? 100.0;
+    public double ArgonWeeklyPercentage => Quotas.ArgonGroup?.WeeklyRemainingPercentage ?? 100.0;
+
+    public string GeminiWeeklyText => Quotas.GeminiGroup?.WeeklyBucket?.FormattedRemaining ?? "100%";
+    public string GeminiFiveHourText => Quotas.GeminiGroup?.FiveHourBucket?.FormattedRemaining ?? "100%";
+    public string ClaudeWeeklyText => Quotas.ClaudeGptGroup?.WeeklyBucket?.FormattedRemaining ?? "100%";
+    public string ArgonWeeklyText => Quotas.ArgonGroup?.WeeklyBucket?.FormattedRemaining ?? "100%";
+
+    public string GeminiWeeklyResetText => Quotas.GeminiGroup?.WeeklyBucket?.FormattedReset ?? "";
+    public string GeminiFiveHourResetText => Quotas.GeminiGroup?.FiveHourBucket?.FormattedReset ?? "";
+    public string GeminiWeeklyDesc => !string.IsNullOrEmpty(Quotas.GeminiGroup?.WeeklyBucket?.Description)
+        ? Quotas.GeminiGroup.WeeklyBucket.Description
+        : "Límite semanal compartido de modelos Gemini";
 
     public MainWindow()
     {
@@ -137,71 +175,47 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         try
         {
-            // 1. Enable Windows Acrylic / Mica Blur behind the window
             WindowBlurHelper.EnableBlur(this);
-
-            // 2. Set Opacity & Topmost
             MainGlassBorder.Opacity = Settings.GlassOpacity;
             Topmost = Settings.AlwaysOnTop;
 
-            // 3. Initial snap position to Windows Taskbar
             TaskbarDockHelper.SnapToPosition(this, Settings.DockPosition);
 
-            // 4. Setup Watcher for Antigravity Transcripts for instant sync
-            SetupAntigravityWatcher();
-
-            // 5. Setup Dispatcher Timer for smooth periodic polling
             _refreshTimer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(1.5)
+                Interval = TimeSpan.FromSeconds(2.0)
             };
-            _refreshTimer.Tick += async (s, ev) => await RefreshDataAsync();
+            _refreshTimer.Tick += async (s, ev) =>
+            {
+                _tickCount++;
+                // Refresh tokens every 2s, quota every 10s (every 5 ticks)
+                bool refreshQuota = (_tickCount % 5 == 0) || (_tickCount <= 2);
+                await RefreshDataAsync(forceRefresh: false, updateQuota: refreshQuota);
+            };
             _refreshTimer.Start();
 
-            // 6. Initial data load
-            _ = RefreshDataAsync();
+            _ = RefreshDataAsync(forceRefresh: false, updateQuota: true);
         }
         catch { }
     }
 
-    private void SetupAntigravityWatcher()
+    private async Task RefreshDataAsync(bool forceRefresh = false, bool updateQuota = true)
     {
         try
         {
-            var brainDir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".gemini",
-                "antigravity",
-                "brain"
-            );
-
-            if (Directory.Exists(brainDir))
+            if (updateQuota)
             {
-                _antigravityWatcher = new FileSystemWatcher(brainDir)
+                var q = await _quotaService.FetchQuotaSummaryAsync(forceRefresh);
+                if (q.Groups.Count > 0)
                 {
-                    Filter = "*.jsonl",
-                    IncludeSubdirectories = true,
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName,
-                    EnableRaisingEvents = true
-                };
-
-                _antigravityWatcher.Changed += (s, e) =>
-                {
-                    Dispatcher.InvokeAsync(async () => await RefreshDataAsync());
-                };
+                    Quotas = q;
+                }
             }
-        }
-        catch { }
-    }
 
-    private async Task RefreshDataAsync()
-    {
-        try
-        {
             var usage = await _providerManager.GetActiveUsageAsync(Settings);
             Usage = usage;
 
-            if (IsExpanded)
+            if (IsExpanded && ShowTokensView)
             {
                 var recents = await _providerManager.GetRecentConversationsAsync(Settings.ActiveProviderId, 4);
                 RecentConversations = new ObservableCollection<ConversationItem>(recents);
@@ -212,7 +226,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void AdjustPositionAfterResize()
     {
-        // When expanding or collapsing, recalculate Top so bottom anchor remains steady
         Dispatcher.InvokeAsync(() =>
         {
             UpdateLayout();
@@ -238,7 +251,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             bool snapped = TaskbarDockHelper.CheckAndAutoSnap(this);
             if (snapped)
             {
-                // Determine which dock area it was snapped to
                 var workArea = SystemParameters.WorkArea;
                 if (Math.Abs(Left + Width - (workArea.Right - TaskbarDockHelper.DockMargin - 16)) < 40)
                     Settings.DockPosition = "BottomRight";
@@ -264,28 +276,19 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
     {
-        await RefreshDataAsync();
+        await RefreshDataAsync(forceRefresh: true, updateQuota: true);
     }
 
-    private async void ProviderRadio_Checked(object sender, RoutedEventArgs e)
+    private void BtnTabQuotas_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is RadioButton rb && rb.Tag is string providerId)
-        {
-            Settings.ActiveProviderId = providerId;
-            Settings.Save();
-            NotifyProviderProperties();
-            await RefreshDataAsync();
-        }
+        ShowQuotasView = true;
+        AdjustPositionAfterResize();
     }
 
-    private void NotifyProviderProperties()
+    private void BtnTabTokens_Click(object sender, RoutedEventArgs e)
     {
-        OnPropertyChanged(nameof(IsProviderAntigravity));
-        OnPropertyChanged(nameof(IsProviderGeminiApi));
-        OnPropertyChanged(nameof(IsProviderOpenAi));
-        OnPropertyChanged(nameof(IsProviderClaude));
-        OnPropertyChanged(nameof(IsProviderDeepSeek));
-        OnPropertyChanged(nameof(CurrentProviderShortName));
+        ShowQuotasView = false;
+        AdjustPositionAfterResize();
     }
 
     private void BtnDock_Click(object sender, RoutedEventArgs e)
@@ -325,7 +328,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             Settings.MaxContextTokens = limit;
             Settings.Save();
-            await RefreshDataAsync();
+            await RefreshDataAsync(forceRefresh: false, updateQuota: false);
         }
     }
 
@@ -337,7 +340,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     protected override void OnClosed(EventArgs e)
     {
         _refreshTimer?.Stop();
-        _antigravityWatcher?.Dispose();
         base.OnClosed(e);
     }
 
