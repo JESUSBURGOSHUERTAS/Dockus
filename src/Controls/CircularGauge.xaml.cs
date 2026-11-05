@@ -20,9 +20,21 @@ public partial class CircularGauge : UserControl
         DependencyProperty.Register(nameof(LabelText), typeof(string), typeof(CircularGauge),
             new PropertyMetadata(string.Empty, OnPropertyChangedStatic));
 
+    public static readonly DependencyProperty LabelBrushProperty =
+        DependencyProperty.Register(nameof(LabelBrush), typeof(Brush), typeof(CircularGauge),
+            new PropertyMetadata(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8")), OnPropertyChangedStatic));
+
+    public static readonly DependencyProperty HeaderProperty =
+        DependencyProperty.Register(nameof(Header), typeof(string), typeof(CircularGauge),
+            new PropertyMetadata(string.Empty, OnPropertyChangedStatic));
+
+    public static readonly DependencyProperty HeaderBrushProperty =
+        DependencyProperty.Register(nameof(HeaderBrush), typeof(Brush), typeof(CircularGauge),
+            new PropertyMetadata(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8")), OnPropertyChangedStatic));
+
     public static readonly DependencyProperty StrokeBrushProperty =
         DependencyProperty.Register(nameof(StrokeBrush), typeof(Brush), typeof(CircularGauge),
-            new PropertyMetadata(new SolidColorBrush(Color.FromRgb(16, 185, 129)), OnPropertyChangedStatic));
+            new PropertyMetadata(new SolidColorBrush((Color)ColorConverter.ConvertFromString("#10B981")), OnPropertyChangedStatic));
 
     public double Percentage
     {
@@ -42,6 +54,24 @@ public partial class CircularGauge : UserControl
         set => SetValue(LabelTextProperty, value);
     }
 
+    public Brush LabelBrush
+    {
+        get => (Brush)GetValue(LabelBrushProperty);
+        set => SetValue(LabelBrushProperty, value);
+    }
+
+    public string Header
+    {
+        get => (string)GetValue(HeaderProperty);
+        set => SetValue(HeaderProperty, value);
+    }
+
+    public Brush HeaderBrush
+    {
+        get => (Brush)GetValue(HeaderBrushProperty);
+        set => SetValue(HeaderBrushProperty, value);
+    }
+
     public Brush StrokeBrush
     {
         get => (Brush)GetValue(StrokeBrushProperty);
@@ -52,6 +82,7 @@ public partial class CircularGauge : UserControl
     {
         InitializeComponent();
         Loaded += (s, e) => UpdateGauge();
+        SizeChanged += (s, e) => UpdateGauge();
     }
 
     private static void OnPropertyChangedStatic(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -68,20 +99,30 @@ public partial class CircularGauge : UserControl
 
         double pct = Math.Clamp(Percentage, 0, 100);
 
-        // Update Text
         TxtValue.Text = !string.IsNullOrEmpty(ValueText) ? ValueText : $"{pct:F0}%";
         TxtLabel.Text = LabelText;
+        TxtLabel.Foreground = LabelBrush ?? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
+
+        if (TxtHeader != null)
+        {
+            if (!string.IsNullOrWhiteSpace(Header))
+            {
+                TxtHeader.Text = Header;
+                TxtHeader.Foreground = HeaderBrush ?? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#94A3B8"));
+                TxtHeader.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                TxtHeader.Visibility = Visibility.Collapsed;
+            }
+        }
+
         ArcPath.Stroke = StrokeBrush;
 
-        // Draw Circular Arc
-        double w = ContainerGrid.ActualWidth > 0 ? ContainerGrid.ActualWidth : 44;
-        double h = ContainerGrid.ActualHeight > 0 ? ContainerGrid.ActualHeight : 44;
-        double margin = 2.0;
-        double strokeThick = 3.5;
-
-        double radius = (Math.Min(w, h) - 2 * margin - strokeThick) / 2.0;
-        double cx = w / 2.0;
-        double cy = h / 2.0;
+        const double size = 50.0;
+        const double radius = 20.0;
+        const double cx = size / 2.0;
+        const double cy = size / 2.0;
 
         if (pct >= 99.5)
         {

@@ -4,24 +4,31 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="70" d:DesignWidth="60">
-    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-        <!-- Circular Ring Container -->
-        <Grid x:Name="ContainerGrid" Width="44" Height="44" HorizontalAlignment="Center">
+             d:DesignHeight="85" d:DesignWidth="80"
+             ClipToBounds="False">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="4,0" ClipToBounds="False">
+        <!-- Optional Top Header (e.g. GEMINI, CLAUDE) -->
+        <TextBlock x:Name="TxtHeader" Text="GEMINI" Foreground="#94A3B8" FontSize="10" FontWeight="Bold"
+                   HorizontalAlignment="Center" Margin="0,0,0,2" Visibility="Collapsed"/>
+
+        <!-- Circular Ring Container: 50x50 with ample room so it NEVER clips -->
+        <Grid x:Name="ContainerGrid" Width="50" Height="50" HorizontalAlignment="Center" ClipToBounds="False">
             <!-- Background Ring -->
-            <Ellipse Stroke="#1F293D" StrokeThickness="3.5" Margin="2"/>
+            <Ellipse x:Name="BgEllipse" Stroke="#1E293B" StrokeThickness="3.5" Width="40" Height="40"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
 
             <!-- Foreground Arc -->
-            <Path x:Name="ArcPath" Stroke="#10B981" StrokeThickness="3.5" Margin="2"
+            <Path x:Name="ArcPath" Stroke="#10B981" StrokeThickness="3.5"
+                  HorizontalAlignment="Center" VerticalAlignment="Center"
                   StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
 
             <!-- Centered Percentage Text -->
-            <TextBlock x:Name="TxtValue" Text="100%" Foreground="#F8FAFC" FontSize="11" FontWeight="Bold"
+            <TextBlock x:Name="TxtValue" Text="100%" Foreground="#F8FAFC" FontSize="12" FontWeight="Bold"
                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
 
-        <!-- Subtitle Label Below Circle -->
-        <TextBlock x:Name="TxtLabel" Text="Semana" Foreground="#94A3B8" FontSize="9.5" FontWeight="SemiBold"
-                   HorizontalAlignment="Center" Margin="0,3,0,0"/>
+        <!-- Subtitle Label Below Circle (e.g. Quedan 3h 45m) -->
+        <TextBlock x:Name="TxtLabel" Text="Quedan 3h 45m" Foreground="#38BDF8" FontSize="9.5" FontWeight="SemiBold"
+                   HorizontalAlignment="Center" Margin="0,2,0,0" TextAlignment="Center" ClipToBounds="False"/>
     </StackPanel>
 </UserControl>

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Dockus.Helpers;
 using Dockus.Models;
@@ -28,17 +29,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         {
             _quotas = value;
             OnPropertyChanged();
-            OnPropertyChanged(nameof(GeminiWeeklyPercentage));
-            OnPropertyChanged(nameof(GeminiFiveHourPercentage));
-            OnPropertyChanged(nameof(ClaudeWeeklyPercentage));
-            OnPropertyChanged(nameof(ArgonWeeklyPercentage));
-            OnPropertyChanged(nameof(GeminiWeeklyText));
-            OnPropertyChanged(nameof(GeminiFiveHourText));
-            OnPropertyChanged(nameof(ClaudeWeeklyText));
-            OnPropertyChanged(nameof(ArgonWeeklyText));
-            OnPropertyChanged(nameof(GeminiWeeklyResetText));
-            OnPropertyChanged(nameof(GeminiFiveHourResetText));
-            OnPropertyChanged(nameof(GeminiWeeklyDesc));
+            NotifyActiveGaugeProperties();
         }
     }
 
@@ -66,6 +57,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _settings = value;
             OnPropertyChanged();
             OnPropertyChanged(nameof(FormattedOpacity));
+            OnPropertyChanged(nameof(IsHourlyMode));
+            OnPropertyChanged(nameof(IsWeeklyMode));
         }
     }
 
@@ -97,6 +90,24 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
         }
     }
+
+    public bool IsHourlyMode
+    {
+        get => Settings.IsHourlyMode;
+        set
+        {
+            if (Settings.IsHourlyMode != value)
+            {
+                Settings.IsHourlyMode = value;
+                Settings.Save();
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsWeeklyMode));
+                NotifyActiveGaugeProperties();
+            }
+        }
+    }
+
+    public bool IsWeeklyMode => !IsHourlyMode;
 
     private bool _showQuotasView = true;
     public bool ShowQuotasView
@@ -146,22 +157,100 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     public string FormattedOpacity => $"{(int)(Settings.GlassOpacity * 100)}%";
 
-    // Quotas formatted helpers
+    // Raw Quota Percentages
     public double GeminiWeeklyPercentage => Quotas.GeminiGroup?.WeeklyRemainingPercentage ?? 100.0;
     public double GeminiFiveHourPercentage => Quotas.GeminiGroup?.FiveHourRemainingPercentage ?? 100.0;
     public double ClaudeWeeklyPercentage => Quotas.ClaudeGptGroup?.WeeklyRemainingPercentage ?? 100.0;
+    public double ClaudeFiveHourPercentage => Quotas.ClaudeGptGroup?.FiveHourRemainingPercentage ?? 100.0;
     public double ArgonWeeklyPercentage => Quotas.ArgonGroup?.WeeklyRemainingPercentage ?? 100.0;
 
     public string GeminiWeeklyText => Quotas.GeminiGroup?.WeeklyBucket?.FormattedRemaining ?? "100%";
     public string GeminiFiveHourText => Quotas.GeminiGroup?.FiveHourBucket?.FormattedRemaining ?? "100%";
     public string ClaudeWeeklyText => Quotas.ClaudeGptGroup?.WeeklyBucket?.FormattedRemaining ?? "100%";
+    public string ClaudeFiveHourText => Quotas.ClaudeGptGroup?.FiveHourBucket?.FormattedRemaining ?? "100%";
     public string ArgonWeeklyText => Quotas.ArgonGroup?.WeeklyBucket?.FormattedRemaining ?? "100%";
 
-    public string GeminiWeeklyResetText => Quotas.GeminiGroup?.WeeklyBucket?.FormattedReset ?? "";
-    public string GeminiFiveHourResetText => Quotas.GeminiGroup?.FiveHourBucket?.FormattedReset ?? "";
+    public string GeminiWeeklyCountdown => Quotas.GeminiGroup?.WeeklyCountdown ?? "Listo";
+    public string GeminiFiveHourCountdown => Quotas.GeminiGroup?.FiveHourCountdown ?? "Listo";
+    public string ClaudeFiveHourCountdown => Quotas.ClaudeGptGroup?.FiveHourCountdown ?? "Listo";
+    public string ClaudeWeeklyCountdown => Quotas.ClaudeGptGroup?.WeeklyCountdown ?? "Listo";
+    public string ArgonWeeklyCountdown => Quotas.ArgonGroup?.WeeklyCountdown ?? "Listo";
+
     public string GeminiWeeklyDesc => !string.IsNullOrEmpty(Quotas.GeminiGroup?.WeeklyBucket?.Description)
         ? Quotas.GeminiGroup.WeeklyBucket.Description
         : "Límite semanal compartido de modelos Gemini";
+
+    // Dynamic Gauges on Compact Bar depending on IsHourlyMode
+    public double MainGeminiPercentage => IsHourlyMode ? GeminiFiveHourPercentage : GeminiWeeklyPercentage;
+    public string MainGeminiValueText => IsHourlyMode ? GeminiFiveHourText : GeminiWeeklyText;
+    public string MainGeminiLabel => IsHourlyMode
+        ? (GeminiFiveHourCountdown == "Listo" ? "100% Libre" : $"Quedan {GeminiFiveHourCountdown}")
+        : (GeminiWeeklyCountdown == "Listo" ? "100% Libre" : $"Quedan {GeminiWeeklyCountdown}");
+    public Brush MainGeminiStroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString(IsHourlyMode ? "#38BDF8" : "#10B981"));
+    public string MainGeminiTooltip => $"GEMINI MODELS\n• Ventana 5 Horas: {GeminiFiveHourText} (Reinicia: {GeminiFiveHourCountdown})\n• Límite Semanal: {GeminiWeeklyText} (Reinicia: {GeminiWeeklyCountdown})";
+
+    public double SecondaryGeminiPercentage => IsHourlyMode ? GeminiWeeklyPercentage : GeminiFiveHourPercentage;
+    public string SecondaryGeminiValueText => IsHourlyMode ? GeminiWeeklyText : GeminiFiveHourText;
+    public string SecondaryGeminiLabel => IsHourlyMode
+        ? $"Semana ({GeminiWeeklyCountdown})"
+        : $"5h ({GeminiFiveHourCountdown})";
+
+    public double MainClaudePercentage => IsHourlyMode ? ClaudeFiveHourPercentage : ClaudeWeeklyPercentage;
+    public string MainClaudeValueText => IsHourlyMode ? ClaudeFiveHourText : ClaudeWeeklyText;
+    public string MainClaudeLabel => IsHourlyMode
+        ? (ClaudeFiveHourCountdown == "Listo" ? "100% Libre" : $"Quedan {ClaudeFiveHourCountdown}")
+        : (ClaudeWeeklyCountdown == "Listo" ? "100% Libre" : $"Quedan {ClaudeWeeklyCountdown}");
+    public Brush MainClaudeStroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#C084FC"));
+    public string MainClaudeTooltip => $"CLAUDE & GPT MODELS\n• Ventana 5 Horas: {ClaudeFiveHourText} (Reinicia: {ClaudeFiveHourCountdown})\n• Límite Semanal: {ClaudeWeeklyText} (Reinicia: {ClaudeWeeklyCountdown})";
+
+    public double MainArgonPercentage => ArgonWeeklyPercentage;
+    public string MainArgonValueText => ArgonWeeklyText;
+    public string MainArgonLabel => ArgonWeeklyCountdown == "Listo" ? "100% Libre" : $"Quedan {ArgonWeeklyCountdown}";
+    public Brush MainArgonStroke => new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F59E0B"));
+    public string MainArgonTooltip => $"GEMINI 4 ARGON\n• Límite Semanal: {ArgonWeeklyText} (Reinicia: {ArgonWeeklyCountdown})\n• Cuota dedicada de razonamiento rápido";
+
+    public string ActiveWindowBadgeText => IsHourlyMode ? $"⏱ {GeminiFiveHourCountdown}" : $"📅 {GeminiWeeklyCountdown}";
+
+    public void NotifyActiveGaugeProperties()
+    {
+        OnPropertyChanged(nameof(GeminiWeeklyPercentage));
+        OnPropertyChanged(nameof(GeminiFiveHourPercentage));
+        OnPropertyChanged(nameof(ClaudeWeeklyPercentage));
+        OnPropertyChanged(nameof(ClaudeFiveHourPercentage));
+        OnPropertyChanged(nameof(ArgonWeeklyPercentage));
+        OnPropertyChanged(nameof(GeminiWeeklyText));
+        OnPropertyChanged(nameof(GeminiFiveHourText));
+        OnPropertyChanged(nameof(ClaudeWeeklyText));
+        OnPropertyChanged(nameof(ClaudeFiveHourText));
+        OnPropertyChanged(nameof(ArgonWeeklyText));
+        OnPropertyChanged(nameof(GeminiWeeklyCountdown));
+        OnPropertyChanged(nameof(GeminiFiveHourCountdown));
+        OnPropertyChanged(nameof(GeminiWeeklyDesc));
+
+        OnPropertyChanged(nameof(MainGeminiPercentage));
+        OnPropertyChanged(nameof(MainGeminiValueText));
+        OnPropertyChanged(nameof(MainGeminiLabel));
+        OnPropertyChanged(nameof(MainGeminiStroke));
+        OnPropertyChanged(nameof(MainGeminiTooltip));
+
+        OnPropertyChanged(nameof(SecondaryGeminiPercentage));
+        OnPropertyChanged(nameof(SecondaryGeminiValueText));
+        OnPropertyChanged(nameof(SecondaryGeminiLabel));
+
+        OnPropertyChanged(nameof(MainClaudePercentage));
+        OnPropertyChanged(nameof(MainClaudeValueText));
+        OnPropertyChanged(nameof(MainClaudeLabel));
+        OnPropertyChanged(nameof(MainClaudeStroke));
+        OnPropertyChanged(nameof(MainClaudeTooltip));
+
+        OnPropertyChanged(nameof(MainArgonPercentage));
+        OnPropertyChanged(nameof(MainArgonValueText));
+        OnPropertyChanged(nameof(MainArgonLabel));
+        OnPropertyChanged(nameof(MainArgonStroke));
+        OnPropertyChanged(nameof(MainArgonTooltip));
+
+        OnPropertyChanged(nameof(ActiveWindowBadgeText));
+    }
 
     public MainWindow()
     {
@@ -188,7 +277,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             _refreshTimer.Tick += async (s, ev) =>
             {
                 _tickCount++;
-                // Refresh tokens every 2s, quota every 10s (every 5 ticks)
                 bool refreshQuota = (_tickCount % 5 == 0) || (_tickCount <= 2);
                 await RefreshDataAsync(forceRefresh: false, updateQuota: refreshQuota);
             };
@@ -277,6 +365,18 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private async void BtnRefresh_Click(object sender, RoutedEventArgs e)
     {
         await RefreshDataAsync(forceRefresh: true, updateQuota: true);
+    }
+
+    private void BtnModeHours_Click(object sender, RoutedEventArgs e)
+    {
+        IsHourlyMode = true;
+        NotifyActiveGaugeProperties();
+    }
+
+    private void BtnModeWeek_Click(object sender, RoutedEventArgs e)
+    {
+        IsHourlyMode = false;
+        NotifyActiveGaugeProperties();
     }
 
     private void BtnTabQuotas_Click(object sender, RoutedEventArgs e)

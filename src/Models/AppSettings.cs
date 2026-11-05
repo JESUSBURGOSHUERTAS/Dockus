@@ -15,6 +15,7 @@ public class AppSettings
     public double WindowLeft { get; set; } = -1;
     public double WindowTop { get; set; } = -1;
     public bool IsExpanded { get; set; } = false;
+    public bool IsHourlyMode { get; set; } = false;
 
     // Optional custom API keys for external providers
     public string GeminiApiKey { get; set; } = string.Empty;

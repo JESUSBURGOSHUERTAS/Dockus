@@ -15,7 +15,7 @@
         WindowStartupLocation="Manual"
         ResizeMode="NoResize"
         SizeToContent="Height"
-        Width="540"
+        Width="650"
         Loaded="Window_Loaded"
         MouseLeftButtonDown="Window_MouseLeftButtonDown"
         MouseLeftButtonUp="Window_MouseLeftButtonUp">
@@ -26,7 +26,7 @@
         <BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
         <!-- Futuristic Glowing Glass Brushes -->
-        <SolidColorBrush x:Key="GlassBackground" Color="#E60D131F"/>
+        <SolidColorBrush x:Key="GlassBackground" Color="#E80D131F"/>
         <SolidColorBrush x:Key="CardBackground" Color="#221E293B"/>
         <SolidColorBrush x:Key="CardBorder" Color="#2638BDF8"/>
         <SolidColorBrush x:Key="TextPrimary" Color="#F8FAFC"/>
@@ -64,6 +64,26 @@
                                 <Setter TargetName="border" Property="Background" Value="#0F172A"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Timeframe Toggle Button Style -->
+        <Style x:Key="TimeframeToggleBtn" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="7,4"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -129,7 +149,8 @@
                 Background="{StaticResource GlassBackground}"
                 BorderThickness="1.2"
                 CornerRadius="18"
-                SnapsToDevicePixels="True">
+                SnapsToDevicePixels="True"
+                ClipToBounds="False">
             <Border.BorderBrush>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                     <GradientStop Color="#6638BDF8" Offset="0"/>
@@ -143,88 +164,109 @@
 
             <StackPanel Orientation="Vertical">
 
-                <!-- 1. COMPACT DOCK BAR (CIRCULAR GAUGES / Always Visible) -->
-                <Grid x:Name="CompactBar" Height="68" Margin="14,0" Cursor="SizeAll">
+                <!-- 1. COMPACT DOCK BAR (CIRCULAR GAUGES & TIMEFRAME SWITCHER) -->
+                <Grid x:Name="CompactBar" Height="86" Margin="14,0" Cursor="SizeAll" ClipToBounds="False">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/> <!-- Brand Badge -->
+                        <ColumnDefinition Width="Auto"/> <!-- Brand & Mode Toggle -->
                         <ColumnDefinition Width="*"/>    <!-- Center Circular Gauges -->
                         <ColumnDefinition Width="Auto"/> <!-- Right Badges & Controls -->
                     </Grid.ColumnDefinitions>
 
-                    <!-- Left: Brand Badge with Live Pulse -->
+                    <!-- Left: Brand Badge & Timeframe Toggle Pill (5h vs 7d) -->
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,10,0">
-                        <Border Background="#1E293B" BorderBrush="#38BDF8" BorderThickness="1" CornerRadius="8" Padding="6,5">
-                            <StackPanel Orientation="Horizontal">
+                        <Border Background="#1E293B" BorderBrush="#38BDF8" BorderThickness="1" CornerRadius="8" Padding="6,5" Margin="0,0,8,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="✦" Foreground="#38BDF8" FontWeight="Bold" FontSize="12" Margin="0,0,4,0"/>
                                 <TextBlock Text="AGY" Foreground="#F8FAFC" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
                             </StackPanel>
                         </Border>
 
-                        <!-- Pulse Dot -->
-                        <Ellipse Width="6" Height="6" Margin="6,0,0,0" VerticalAlignment="Center" Fill="#10B981">
-                            <Ellipse.Effect>
-                                <DropShadowEffect Color="#10B981" BlurRadius="6" ShadowDepth="0" Opacity="0.8"/>
-                            </Ellipse.Effect>
-                        </Ellipse>
-                    </StackPanel>
-
-                    <!-- Center: 4 CIRCULAR GAUGES (Zero Text Overlap, Clean & Visual) -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        
-                        <!-- Circle 1: Gemini Semanal -->
-                        <controls:CircularGauge Margin="6,0"
-                                                Percentage="{Binding GeminiWeeklyPercentage, Mode=OneWay}"
-                                                ValueText="{Binding GeminiWeeklyText}"
-                                                LabelText="Semana"
-                                                StrokeBrush="#10B981"
-                                                ToolTip="Límite semanal Gemini Models (Restante)"/>
-
-                        <!-- Circle 2: Gemini 5 Horas -->
-                        <controls:CircularGauge Margin="6,0"
-                                                Percentage="{Binding GeminiFiveHourPercentage, Mode=OneWay}"
-                                                ValueText="{Binding GeminiFiveHourText}"
-                                                LabelText="5 Horas"
-                                                StrokeBrush="#38BDF8"
-                                                ToolTip="Límite de 5 horas Gemini Models (Restante)"/>
-
-                        <!-- Circle 3: Claude & GPT -->
-                        <controls:CircularGauge Margin="6,0"
-                                                Percentage="{Binding ClaudeWeeklyPercentage, Mode=OneWay}"
-                                                ValueText="{Binding ClaudeWeeklyText}"
-                                                LabelText="Claude"
-                                                StrokeBrush="#C084FC"
-                                                ToolTip="Límite semanal Claude &amp; GPT models (Restante)"/>
-
-                        <!-- Circle 4: Gemini 4 Argon -->
-                        <controls:CircularGauge Margin="6,0"
-                                                Percentage="{Binding ArgonWeeklyPercentage, Mode=OneWay}"
-                                                ValueText="{Binding ArgonWeeklyText}"
-                                                LabelText="Argon"
-                                                StrokeBrush="#F59E0B"
-                                                ToolTip="Límite semanal Gemini 4 Argon (Restante)"/>
-
-                    </StackPanel>
-
-                    <!-- Right: Reset Pill + Expand + Close -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
-                        <!-- Reset Countdown Pill -->
-                        <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Padding="6,4" Margin="0,0,5,0"
-                                ToolTip="Tiempo para que el límite semanal se reinicie por completo">
+                        <!-- Timeframe Toggle Switch (⏱ 5h | 📅 7d) -->
+                        <Border Background="#0F172A" BorderBrush="#1E293B" BorderThickness="1" CornerRadius="8" Padding="2" VerticalAlignment="Center">
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="⏳" Foreground="#38BDF8" FontSize="10" Margin="0,0,2,0"/>
-                                <TextBlock Text="{Binding GeminiWeeklyResetText}" Foreground="#38BDF8" FontWeight="Bold" FontSize="10"/>
+                                <Button Content="⏱ 5h" Click="BtnModeHours_Click" ToolTip="Ver límites por hora (ventana móvil de 5 horas)">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource TimeframeToggleBtn}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsHourlyMode}" Value="True">
+                                                    <Setter Property="Background" Value="#1E293B"/>
+                                                    <Setter Property="Foreground" Value="#38BDF8"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
+                                <Button Content="📅 7d" Click="BtnModeWeek_Click" ToolTip="Ver límites semanales (cuota de 7 días)">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource TimeframeToggleBtn}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsWeeklyMode}" Value="True">
+                                                    <Setter Property="Background" Value="#1E293B"/>
+                                                    <Setter Property="Foreground" Value="#10B981"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                </Button>
                             </StackPanel>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Center: 3 SPACIOUS CIRCULAR GAUGES (Unclipped, Ample Spacing, Dynamic Countdown) -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">
+                        
+                        <!-- Circle 1: Gemini (5h or Weekly with exact countdown: e.g. "Quedan 4h 13m") -->
+                        <controls:CircularGauge Margin="10,0" ClipToBounds="False"
+                                                Header="GEMINI"
+                                                HeaderBrush="{Binding MainGeminiStroke}"
+                                                Percentage="{Binding MainGeminiPercentage, Mode=OneWay}"
+                                                ValueText="{Binding MainGeminiValueText}"
+                                                LabelText="{Binding MainGeminiLabel}"
+                                                LabelBrush="{Binding MainGeminiStroke}"
+                                                StrokeBrush="{Binding MainGeminiStroke}"
+                                                ToolTip="{Binding MainGeminiTooltip}"/>
+
+                        <!-- Circle 2: Claude & GPT -->
+                        <controls:CircularGauge Margin="10,0" ClipToBounds="False"
+                                                Header="CLAUDE"
+                                                HeaderBrush="{Binding MainClaudeStroke}"
+                                                Percentage="{Binding MainClaudePercentage, Mode=OneWay}"
+                                                ValueText="{Binding MainClaudeValueText}"
+                                                LabelText="{Binding MainClaudeLabel}"
+                                                LabelBrush="{Binding MainClaudeStroke}"
+                                                StrokeBrush="{Binding MainClaudeStroke}"
+                                                ToolTip="{Binding MainClaudeTooltip}"/>
+
+                        <!-- Circle 3: Gemini 4 Argon -->
+                        <controls:CircularGauge Margin="10,0" ClipToBounds="False"
+                                                Header="ARGON"
+                                                HeaderBrush="{Binding MainArgonStroke}"
+                                                Percentage="{Binding MainArgonPercentage, Mode=OneWay}"
+                                                ValueText="{Binding MainArgonValueText}"
+                                                LabelText="{Binding MainArgonLabel}"
+                                                LabelBrush="{Binding MainArgonStroke}"
+                                                StrokeBrush="{Binding MainArgonStroke}"
+                                                ToolTip="{Binding MainArgonTooltip}"/>
+
+                    </StackPanel>
+
+                    <!-- Right: Mode Badge + Expand + Close -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="6,0,0,0">
+                        <!-- Active Window Badge -->
+                        <Border Background="#1A38BDF8" BorderBrush="#3338BDF8" BorderThickness="1" CornerRadius="6" Padding="6,4" Margin="0,0,5,0"
+                                ToolTip="Modo activo y cuenta regresiva de reinicio">
+                            <TextBlock Text="{Binding ActiveWindowBadgeText}" Foreground="#38BDF8" FontWeight="Bold" FontSize="10"/>
                         </Border>
 
                         <!-- Expand / Collapse Button -->
                         <Button Style="{StaticResource IconBtnStyle}" Click="BtnToggleExpand_Click"
-                                ToolTip="Expandir panel detallado de cuotas y tokens">
+                                ToolTip="Expandir panel detallado">
                             <TextBlock Text="{Binding ExpandIconText}" FontSize="12" Foreground="#94A3B8"/>
                         </Button>
 
                         <!-- Close Button -->
                         <Button Style="{StaticResource IconBtnStyle}" Click="BtnClose_Click" Margin="2,0,0,0"
-                                ToolTip="Cerrar Dockus">
+                                ToolTip="Cerrar monitor">
                             <TextBlock Text="✕" FontSize="11" Foreground="#64748B"/>
                         </Button>
                     </StackPanel>
@@ -283,7 +325,7 @@
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <Grid Margin="0,0,0,4">
                                                     <TextBlock Text="Weekly Limit Remaining" Foreground="#94A3B8" FontSize="11" FontWeight="SemiBold"/>
-                                                    <TextBlock Text="{Binding GeminiWeeklyResetText, StringFormat='Reinicia en {0}'}" Foreground="#10B981" FontSize="10.5" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding GeminiWeeklyCountdown, StringFormat='Reinicia en {0}'}" Foreground="#10B981" FontSize="10.5" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <TextBlock Text="{Binding GeminiWeeklyDesc}" Foreground="#64748B" FontSize="10.5" TextWrapping="Wrap"/>
                                             </StackPanel>
@@ -308,7 +350,7 @@
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <Grid Margin="0,0,0,4">
                                                     <TextBlock Text="Five Hour Limit Remaining" Foreground="#94A3B8" FontSize="11" FontWeight="SemiBold"/>
-                                                    <TextBlock Text="{Binding GeminiFiveHourResetText, StringFormat='Reinicia en {0}'}" Foreground="#38BDF8" FontSize="10.5" HorizontalAlignment="Right"/>
+                                                    <TextBlock Text="{Binding GeminiFiveHourCountdown, StringFormat='Reinicia en {0}'}" Foreground="#38BDF8" FontSize="10.5" HorizontalAlignment="Right"/>
                                                 </Grid>
                                                 <TextBlock Text="Regula la demanda global distribuyendo capacidad de manera uniforme." Foreground="#64748B" FontSize="10.5" TextWrapping="Wrap"/>
                                             </StackPanel>

@@ -18,16 +18,41 @@ public class QuotaBucket
     public string FormattedRemaining => $"{RemainingPercentage:F0}%";
     public string FormattedUsed => $"{UsedPercentage:F0}%";
 
-    public string FormattedReset
+    public string FormattedCountdown
     {
         get
         {
-            if (ResetTime == null) return string.Empty;
+            if (ResetTime == null) return "Listo";
             var diff = ResetTime.Value.ToLocalTime() - DateTime.Now;
-            if (diff.TotalMinutes <= 0) return "En breve";
-            if (diff.TotalDays >= 1) return $"{(int)diff.TotalDays}d {diff.Hours}h";
-            if (diff.TotalHours >= 1) return $"{(int)diff.TotalHours}h {diff.Minutes}m";
+            if (diff.TotalSeconds <= 0) return "Listo";
+            if (diff.TotalDays >= 1)
+            {
+                return $"{(int)diff.TotalDays}d {diff.Hours}h";
+            }
+            if (diff.TotalHours >= 1)
+            {
+                return $"{(int)diff.TotalHours}h {diff.Minutes:D2}m";
+            }
             return $"{diff.Minutes}m";
+        }
+    }
+
+    public string FormattedRemainingCountdown
+    {
+        get
+        {
+            if (ResetTime == null) return "Listo";
+            var diff = ResetTime.Value.ToLocalTime() - DateTime.Now;
+            if (diff.TotalSeconds <= 0) return "Listo";
+            if (diff.TotalDays >= 1)
+            {
+                return $"Quedan {(int)diff.TotalDays}d {diff.Hours}h";
+            }
+            if (diff.TotalHours >= 1)
+            {
+                return $"Quedan {(int)diff.TotalHours}h {diff.Minutes:D2}m";
+            }
+            return $"Quedan {diff.Minutes}m";
         }
     }
 }
@@ -45,6 +70,11 @@ public class QuotaGroup
     public string FormattedFiveHourRemaining => FiveHourBucket?.FormattedRemaining ?? "100%";
     public double WeeklyRemainingPercentage => WeeklyBucket?.RemainingPercentage ?? 100.0;
     public double FiveHourRemainingPercentage => FiveHourBucket?.RemainingPercentage ?? 100.0;
+
+    public string WeeklyCountdown => WeeklyBucket?.FormattedCountdown ?? "Listo";
+    public string FiveHourCountdown => FiveHourBucket?.FormattedCountdown ?? "Listo";
+    public string WeeklyRemainingCountdown => WeeklyBucket?.FormattedRemainingCountdown ?? "Listo";
+    public string FiveHourRemainingCountdown => FiveHourBucket?.FormattedRemainingCountdown ?? "Listo";
 }
 
 public class AntigravityQuotaSummary
@@ -57,11 +87,4 @@ public class AntigravityQuotaSummary
     public QuotaGroup? GeminiGroup => Groups.FirstOrDefault(g => g.DisplayName.Contains("Gemini Models", StringComparison.OrdinalIgnoreCase) || g.DisplayName.StartsWith("Gemini", StringComparison.OrdinalIgnoreCase));
     public QuotaGroup? ClaudeGptGroup => Groups.FirstOrDefault(g => g.DisplayName.Contains("Claude", StringComparison.OrdinalIgnoreCase));
     public QuotaGroup? ArgonGroup => Groups.FirstOrDefault(g => g.DisplayName.Contains("Argon", StringComparison.OrdinalIgnoreCase));
-
-    // Summary strings for Compact Bar
-    public string CompactGeminiWeekly => GeminiGroup?.WeeklyBucket != null ? $"{GeminiGroup.WeeklyBucket.FormattedRemaining} Gemini" : "100% Gemini";
-    public string CompactFiveHour => GeminiGroup?.FiveHourBucket != null ? $"{GeminiGroup.FiveHourBucket.FormattedRemaining} (5h)" : "100% (5h)";
-    public string CompactClaudeGpt => ClaudeGptGroup?.WeeklyBucket != null ? $"{ClaudeGptGroup.WeeklyBucket.FormattedRemaining} Claude" : "100% Claude";
-    public double CompactGeminiPercentage => GeminiGroup?.WeeklyBucket?.RemainingPercentage ?? 100.0;
 }
-
