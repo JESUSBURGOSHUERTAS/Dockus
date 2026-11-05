@@ -7,6 +7,7 @@
         xmlns:controls="clr-namespace:Dockus.Controls"
         mc:Ignorable="d"
         Title="Dockus - AI Quota &amp; Token Monitor"
+        Icon="assets/logo.png"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"

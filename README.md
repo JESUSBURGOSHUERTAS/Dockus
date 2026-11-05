@@ -1,19 +1,35 @@
-# ✦ Dockus — AI Quota & Token Monitor for Windows
-
 <div align="center">
 
+<img src="assets/logo.png" width="180" alt="Dockus Logo" style="filter: drop-shadow(0 0 25px rgba(56, 189, 248, 0.45)); margin-bottom: 12px;" />
+
+# ✦ Dockus — AI Quota & Token Monitor for Windows
+
+[![Sitio Web Oficial](https://img.shields.io/badge/Sitio%20Web-GitHub%20Pages-38BDF8?style=for-the-badge&logo=googlechrome&logoColor=white)](https://jesusburgoshuertas.github.io/Dockus/)
+[![Última Release](https://img.shields.io/github/v/release/JESUSBURGOSHUERTAS/Dockus?style=for-the-badge&color=0EA5E9)](https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest)
 ![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%7C%2011%20(x64)-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 ![Framework](https://img.shields.io/badge/.NET-10.0%20WPF-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
 ![Style](https://img.shields.io/badge/Style-Modern%20Aero%20Glass-38BDF8?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-GPLv3-10B981?style=for-the-badge)
 
-**Un monitor de cuotas y consumo de tokens para IA de escritorio, diseñado con estética translúcida estilo Windows 7 Aero moderno, micropartículas ambientales y acople magnético a las esquinas de la barra de tareas.**
+<p align="center">
+  <b>Un monitor de escritorio flotante y transparente para Windows que rastrea tus cuotas y consumo de tokens de IA en tiempo real, diseñado con estética translúcida inspirada en Windows 7 Aero Glass, micropartículas ambientales vivas y acople magnético a las esquinas de tu pantalla.</b>
+</p>
+
+[🌐 Visitar Sitio Web](https://jesusburgoshuertas.github.io/Dockus/) · [⬇ Descargar v1.0.0](https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest) · [🐞 Reportar un Error](https://github.com/JESUSBURGOSHUERTAS/Dockus/issues)
 
 </div>
 
 ---
 
-## 🌟 Características Principales
+## 🌟 ¿Qué es Dockus?
+
+**Dockus** es una barra de monitoreo inteligente y compacta concebida para desarrolladores, investigadores y entusiastas de la Inteligencia Artificial. Mientras trabajas en tu IDE (como Google Antigravity) o ejecutas tareas con modelos de lenguaje masivos, Dockus permanece discretamente acoplado sobre tu barra de tareas mostrándote con precisión matemática cuánto límite de uso te queda y exactamente cuántas horas y minutos faltan para que tu cuota se reinicie al 100%.
+
+Todo esto integrado en un diseño de cristal físico **Aero Glass** de última generación, sin estorbar tu flujo de trabajo, con cero telemetría externa y 100% de ejecución local en tu máquina.
+
+---
+
+## ⚡ Características Principales
 
 - **✦ Monitoreo Oficial de Cuotas de Antigravity en Tiempo Real**:
   - Conexión directa mediante **Connect-RPC** al Language Server local de Antigravity (`agy`).
@@ -22,15 +38,15 @@
     - **Claude & GPT Models** (Opus, Sonnet, GPT-OSS): Límite semanal y ventana de 5 horas.
     - **Gemini 4 Argon**: Cuota dedicada de razonamiento rápido semanal.
 - **⏱ Selector Rápido de Período (`[ ⏱ 5h ]` / `[ 📅 7d ]`)**:
-  - Cambia al instante la vista de los medidores entre la ventana móvil de 5 horas y la cuota semanal.
+  - Alterna al instante la vista de los medidores entre la ventana móvil corta de 5 horas y la cuota semanal completa de 7 días con un solo clic.
 - **⏳ Cuenta Regresiva Exacta de Reinicio**:
-  - Muestra el tiempo restante real para el restablecimiento de cada modelo (ej. `4h 03m`, `4d 01h` o `100% Libre`), sin textos genéricos.
+  - Muestra el tiempo restante real para el restablecimiento de cada modelo (ej. `3h 28m`, `4h 55m`, `6d 18h` o `100% Libre`), calculando dinámicamente cada segundo sin textos estáticos.
 - **🔮 Estética Aero Glass Moderna con Micropartículas**:
-  - Fondo translúcido con desenfoque de cristal físico **DWM Acrylic BlurBehind**.
+  - Fondo translúcido con desenfoque de cristal físico **DWM Acrylic BlurBehind** nativo de Windows.
   - Brillo especular biselado en el borde superior idéntico al vidrio de Windows 7 Aero.
   - Lienzo de **micropartículas de luz viva** (cian, púrpura, menta) que flotan suavemente en el interior del cristal con un consumo de CPU del 0.0%.
 - **🧲 Acople Magnético a Esquinas y Barra de Tareas**:
-  - Anclaje al ras de la esquina inferior derecha o izquierda de la pantalla, sin sombras cuadradas ni márgenes invisibles molestos.
+  - Anclaje automático al ras de la esquina inferior derecha o izquierda de la pantalla, sin sombras cuadradas, sin rebordes indeseados y sin márgenes invisibles.
 - **📊 Panel Detallado Expandible (Flyout Dashboard)**:
   - Vista completa con desglose de cuotas oficiales, descripciones de capacidad global, tokens de entrada, salida, caché y tasa de acierto de conversaciones activas.
 - **🧩 Arquitectura Multi-Proveedor Modular**:
@@ -46,54 +62,55 @@
 
 ---
 
-## 🚀 Compilación e Instalación
+## 🚀 Instalación Rápida (Sin Compilar)
 
-### 1. Clonar el repositorio
-```bash
+1. Descarga el archivo comprimido desde la sección de [Releases de GitHub](https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest):
+   - **`Dockus-v1.0.0-win-x64.zip`**
+2. Descomprime la carpeta en la ubicación que prefieras (ej. `C:\Dockus` o en tus Documentos).
+3. Haz doble clic en **`Iniciar-Dockus.bat`** (o directamente en `Dockus.exe`).
+
+---
+
+## 🛠️ Compilación para Desarrolladores
+
+Si deseas compilar el código fuente por ti mismo:
+
+```powershell
+# 1. Clonar el repositorio
 git clone https://github.com/JESUSBURGOSHUERTAS/Dockus.git
 cd Dockus
-```
 
-### 2. Compilar el proyecto
-```powershell
+# 2. Compilar con dotnet
 dotnet build src/Dockus.csproj -c Release
-```
 
-### 3. Publicar la versión ejecutable independiente
-```powershell
+# 3. Publicar la versión ejecutable independiente
 dotnet publish src/Dockus.csproj -c Release -o publish
-```
 
-### 4. Ejecución
-Puedes iniciar la aplicación directamente desde la carpeta `publish`:
-```powershell
+# 4. Ejecutar
 .\publish\Dockus.exe
 ```
-O ejecutando el lanzador por lotes:
-```cmd
-Iniciar-Dockus.bat
-```
 
 ---
 
-## ⚙️ Configuración y Uso
+## ⚙️ Controles y Uso
 
-### Interfaz Compacta (Dock Bar)
-- **Arrastre libre:** Haz clic con el botón izquierdo y arrastra la barra a cualquier parte de tu pantalla. Si la sueltas cerca de la barra de tareas, se acoplará magnéticamente a la esquina.
-- **Cambio de período:** Haz clic en `⏱ 5h` o `📅 7d` para alternar entre cuotas por hora y semanales.
-- **Expandir:** Haz clic en el botón `▼` en el extremo derecho para abrir el panel detallado.
-
-### Panel Detallado (Flyout)
-- **Pestaña Cuotas y Límites:** Visualiza las tarjetas completas de los modelos Gemini, Claude & GPT y Argon con sus tiempos de ciclo.
-- **Pestaña Tokens y Contexto:** Analiza el consumo de la sesión activa de conversación, tokens de caché y uso acumulado del día.
-- **Opciones de anclaje y opacidad:** Configura el nivel de transparencia del cristal, mantén la ventana siempre al frente (*Always on Top*) o cámbiala de esquina.
+- **Arrastre libre:** Haz clic con el botón izquierdo sobre la barra y muévela a cualquier lugar. Al soltarla cerca de la barra de tareas, se acoplará magnéticamente a la esquina.
+- **Alternar período:** Pulsa en `⏱ 5h` o `📅 7d` para alternar la escala de tiempo entre el ciclo corto móvil y el semanal.
+- **Expandir detalles:** Pulsa en `▼` en la esquina derecha para abrir el panel flyout con la analítica de tokens, selector de opacidad y botones de anclaje rápido.
+- **Cerrar:** Pulsa en `✕` en cualquier momento.
 
 ---
 
-## 🛠️ Arquitectura Técnica
+## 📂 Arquitectura del Proyecto
 
 ```
 Dockus/
+├── assets/                           # Identidad visual y logotipo oficial
+│   ├── logo.png                      # Logotipo Cyber Lion en alta resolución
+│   └── app.ico                       # Icono ejecutable de la aplicación
+├── docs/                             # Sitio web estático para GitHub Pages
+│   ├── index.html                    # Landing page moderna y responsive
+│   └── assets/                       # Recursos visuales del portal
 ├── src/
 │   ├── Controls/
 │   │   ├── AeroParticlesCanvas.cs    # Motor liviano de partículas ambientales estilo cristal vivo
@@ -119,14 +136,15 @@ Dockus/
 
 ## 📜 Licencia
 
-Este proyecto está bajo la licencia **GNU General Public License v3.0 (GPLv3)**.
+Este proyecto está publicado bajo la licencia **GNU General Public License v3.0 (GPLv3)**.
 
-> [!NOTE]
+> [!IMPORTANT]
 > **¿Por qué GPLv3?**  
-> Esta licencia permite a cualquier persona usar, estudiar, modificar y compartir el software libremente. Sin embargo, impone una protección de **Copyleft estricto**: ninguna persona o empresa puede tomar este código o sus derivados para convertirlos en un producto propietario o de código cerrado. Cualquier modificación o distribución derivada debe permanecer 100% de código abierto bajo esta misma licencia.
+> Esta licencia garantiza que Dockus es y será siempre software libre y de uso público. Cualquier persona puede usarlo, estudiarlo, modificarlo y compartirlo. Sin embargo, impone **Copyleft estricto**: ninguna persona o empresa puede tomar este código o crear una obra derivada para convertirla en software privado, cerrado o comercial de código cerrado. Todo software basado en Dockus debe permanecer 100% de código abierto bajo esta misma licencia.
 
 ---
 
 <div align="center">
-Desarrollado con pasión para la comunidad de desarrolladores e investigadores de IA.
+  <b>Hecho con dedicación por <a href="https://github.com/JESUSBURGOSHUERTAS">Jesus Burgos</a></b><br>
+  <sub>Dockus es un proyecto independiente de código abierto y no está afiliado oficialmente a Google ni Anthropic.</sub>
 </div>

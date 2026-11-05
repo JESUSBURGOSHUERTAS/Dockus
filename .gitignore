@@ -15,6 +15,7 @@ skills/
 ## Logs & Temp
 *.log
 *.tmp
+*.zip
 
 ## OS Files
 Thumbs.db
