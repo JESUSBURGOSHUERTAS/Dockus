@@ -639,7 +639,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private string? _trayHint;
 
     /// <summary>El anillo sigue el selector ⏱ 5h / 📅 7d de la barra.</summary>
-    private void UpdateTray() => _trayIcon?.Update(ClaudePlan, _trayHint, showWeekly: !IsHourlyMode);
+    private void UpdateTray()
+    {
+        if (_trayIcon == null) return;
+        _trayIcon.ShowNumber = Settings.ShowTrayNumber;
+        _trayIcon.Update(ClaudePlan, _trayHint, showWeekly: !IsHourlyMode);
+    }
 
     private void EnsureTrayIcon()
     {
@@ -704,6 +709,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         if (!IsLoaded) return; // evento disparado por el binding inicial, no por el usuario
         Settings.Save();
         EnsureTrayIcon();
+        UpdateTray();
     }
 
     private void AdjustPositionAfterResize()

@@ -19,6 +19,9 @@ public sealed class ClaudeTrayIcon : IDisposable
     private IntPtr _currentHandle = IntPtr.Zero;
     private string _lastKey = string.Empty;
 
+    /// <summary>Dibuja el % usado como número dentro del anillo (como el indicador de batería).</summary>
+    public bool ShowNumber { get; set; } = true;
+
     public event Action? ShowRequested;
     public event Action? RefreshRequested;
     public event Action? ExitRequested;
@@ -54,11 +57,11 @@ public sealed class ClaudeTrayIcon : IDisposable
         bool stale = plan?.IsStale == true;
 
         // Solo redibuja si cambió algo visible (evita crear íconos cada 2 s).
-        var key = $"{used:F0}|{stale}";
+        var key = $"{used:F0}|{stale}|{ShowNumber}";
         if (key != _lastKey)
         {
             _lastKey = key;
-            SetIcon(DrawRing(used, stale));
+            SetIcon(DrawRing(used, stale, ShowNumber));
         }
 
         _notifyIcon.Text = Truncate(BuildTooltip(plan, emptyHint, bucket), 127);
@@ -86,16 +89,32 @@ public sealed class ClaudeTrayIcon : IDisposable
     private static readonly Drawing.Color WarnOrange = Drawing.Color.FromArgb(230, 159, 0);    // #E69F00 naranja
     private static readonly Drawing.Color HighVermillion = Drawing.Color.FromArgb(213, 94, 0); // #D55E00 bermellón
 
-    private static IntPtr DrawRing(double? usedPercent, bool stale)
+    /// <summary>true si la barra de tareas usa tema claro (texto oscuro); por defecto, oscura.</summary>
+    private static bool TaskbarIsLight()
     {
-        // Tamaño del ícono pequeño según el DPI actual (16 px al 100 %, 24 px al 150 %...).
-        int size = Math.Max(16, Forms.SystemInformation.SmallIconSize.Width);
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(
+                @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize");
+            return key?.GetValue("SystemUsesLightTheme") is int v && v == 1;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static IntPtr DrawRing(double? usedPercent, bool stale, bool showNumber, int? sizeOverride = null)
+    {
+        // Tamaño del ícono pequeño según el DPI actual (16 px al 100 %, 20 px al 125 %, 24 px al 150 %).
+        int size = sizeOverride ?? Math.Max(16, Forms.SystemInformation.SmallIconSize.Width);
         using var bmp = new Drawing.Bitmap(size, size, Drawing.Imaging.PixelFormat.Format32bppArgb);
         using var g = Drawing.Graphics.FromImage(bmp);
         g.SmoothingMode = Drawing.Drawing2D.SmoothingMode.AntiAlias;
         g.Clear(Drawing.Color.Transparent);
 
-        float stroke = Math.Max(2.5f, size * 0.17f);
+        // Con número, el anillo es más delgado para dejarle espacio a las cifras.
+        float stroke = showNumber ? Math.Max(1.6f, size * 0.10f) : Math.Max(2.5f, size * 0.17f);
         float inset = stroke / 2f + 0.5f;
         var rect = new Drawing.RectangleF(inset, inset, size - inset * 2, size - inset * 2);
 
@@ -122,9 +141,14 @@ public sealed class ClaudeTrayIcon : IDisposable
                 else g.DrawArc(pen, rect, -90f, sweep);
             }
 
-            // Señal de forma además del color: punto central cuando ya se usó 80 % o más.
-            if (used >= 80)
+            if (showNumber)
             {
+                // El número ya avisa por sí solo (no depende del color).
+                DrawCenteredNumber(g, size, stroke, used >= 99.5 ? "100" : used.ToString("0"));
+            }
+            else if (used >= 80)
+            {
+                // Señal de forma además del color: punto central cuando ya se usó 80 % o más.
                 float dot = size * 0.30f;
                 using var brush = new Drawing.SolidBrush(color);
                 g.FillEllipse(brush, (size - dot) / 2f, (size - dot) / 2f, dot, dot);
@@ -132,6 +156,37 @@ public sealed class ClaudeTrayIcon : IDisposable
         }
 
         return bmp.GetHicon();
+    }
+
+    /// <summary>Dibuja las cifras lo más grandes posible dentro del anillo, con contraste según la barra.</summary>
+    private static void DrawCenteredNumber(Drawing.Graphics g, int size, float stroke, string text)
+    {
+        float inner = size - stroke * 2f - 1f;
+        var textColor = TaskbarIsLight() ? Drawing.Color.FromArgb(15, 23, 42) : Drawing.Color.FromArgb(248, 250, 252);
+        using var family = new Drawing.FontFamily("Segoe UI");
+
+        // Se usa una ruta (no DrawString) para medir la tinta real y centrarla al píxel.
+        float em = size * 0.75f;
+        Drawing.Drawing2D.GraphicsPath? path = null;
+        Drawing.RectangleF bounds = default;
+        for (int i = 0; i < 20; i++)
+        {
+            path?.Dispose();
+            path = new Drawing.Drawing2D.GraphicsPath();
+            path.AddString(text, family, (int)Drawing.FontStyle.Bold, em, Drawing.PointF.Empty, Drawing.StringFormat.GenericTypographic);
+            bounds = path.GetBounds();
+            if (bounds.Width <= inner * 0.92f && bounds.Height <= inner * 0.72f) break;
+            em *= 0.92f;
+        }
+
+        using (path)
+        using (var m = new Drawing.Drawing2D.Matrix())
+        {
+            m.Translate(size / 2f - (bounds.X + bounds.Width / 2f), size / 2f - (bounds.Y + bounds.Height / 2f));
+            path!.Transform(m);
+            using var brush = new Drawing.SolidBrush(textColor);
+            g.FillPath(brush, path);
+        }
     }
 
     private void SetIcon(IntPtr handle)
