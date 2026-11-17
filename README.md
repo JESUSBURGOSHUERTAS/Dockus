@@ -16,7 +16,7 @@
   <b>Un monitor de escritorio flotante y translúcido que rastrea tus cuotas y consumo de tokens de IA en tiempo real, diseñado con estética inspirada en Windows 7 Aero Glass, micropartículas ambientales vivas, acople magnético a esquinas y selector multi-proveedor (Antigravity, DeepSeek, Claude, Gemini, OpenAI y Ollama).</b>
 </p>
 
-[🌐 Visitar Sitio Web](https://jesusburgoshuertas.github.io/Dockus/) · [⬇ Descargar v1.0.0](https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest) · [🐞 Reportar un Error](https://github.com/JESUSBURGOSHUERTAS/Dockus/issues)
+[🌐 Visitar Sitio Web](https://jesusburgoshuertas.github.io/Dockus/) · [⬇ Descargar v1.1.0](https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest) · [🐞 Reportar un Error](https://github.com/JESUSBURGOSHUERTAS/Dockus/issues)
 
 </div>
 
@@ -123,7 +123,7 @@ Dockus aplica las mejores prácticas de seguridad de la industria para garantiza
 
 ## 🖥️ Compatibilidad de Sistemas Operativos
 
-- **Windows 10 & 11 (x64):** ✅ **Disponible ahora** (Versión 1.0.0 estable con instalador portable).
+- **Windows 10 & 11 (x64):** ✅ **Disponible ahora** (Versión 1.1.0 estable con instalador portable).
 - **🐧 Linux (Ubuntu, Fedora, Arch, Debian):** 🚀 **Próximamente** (en desarrollo activo con Avalonia UI y .NET nativo para soportar entornos GNOME, KDE y Wayland/X11).
 
 ---
@@ -131,7 +131,7 @@ Dockus aplica las mejores prácticas de seguridad de la industria para garantiza
 ## 🚀 Instalación Rápida (Sin Compilar)
 
 1. Descarga el archivo comprimido desde la sección de [Releases de GitHub](https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest):
-   - **`Dockus-v1.0.0-win-x64.zip`**
+   - **`Dockus-v1.1.0-win-x64.zip`**
 2. Descomprime la carpeta en la ubicación que prefieras (ej. `C:\Dockus` o en tus Documentos).
 3. Haz doble clic en **`Iniciar-Dockus.bat`** (o directamente en `Dockus.exe`).
 
