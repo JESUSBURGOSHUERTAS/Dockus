@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <!-- Solo para NotifyIcon (anillo de uso en la bandeja de la barra de tareas) -->
+    <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>assets\app.ico</ApplicationIcon>
     <Version>1.0.0</Version>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
@@ -20,12 +22,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Evita choques WPF/WinForms (Brush, Color, UserControl...): WinForms se usa con nombre completo -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Script de statusline de Claude Code; Dockus lo copia a %APPDATA%\Dockus al conectar -->
     <EmbeddedResource Include="..\scripts\dockus-statusline.ps1" LogicalName="Dockus.scripts.dockus-statusline.ps1" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
+    <!-- Ventana de inicio de sesión de claude.ai y consulta de uso con la sesión local -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2903.40" />
   </ItemGroup>
 
 </Project>

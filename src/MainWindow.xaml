@@ -299,8 +299,9 @@
                                                     StrokeBrush="{Binding Gauge2Stroke}"
                                                     ToolTip="{Binding Gauge2Tooltip}"/>
 
-                            <!-- Circle 3: Argon Fast Reasoning / Status -->
+                            <!-- Circle 3: Argon Fast Reasoning (el círculo ESTADO de otros proveedores se oculta) -->
                             <controls:CircularGauge Margin="4,0" ClipToBounds="False"
+                                                    Visibility="{Binding ShowGauge3, Converter={StaticResource BoolToVis}}"
                                                     Header="{Binding Gauge3Header}"
                                                     HeaderBrush="{Binding Gauge3Stroke}"
                                                     Percentage="{Binding Gauge3Percentage, Mode=OneWay}"
@@ -318,6 +319,12 @@
                             <Button Style="{StaticResource IconBtnStyle}" Click="BtnToggleExpand_Click" Padding="4,3"
                                     ToolTip="Expandir panel detallado">
                                 <TextBlock Text="{Binding ExpandIconText}" FontSize="10.5" Foreground="#94A3B8"/>
+                            </Button>
+
+                            <!-- Minimize Button: con el anillo activo se oculta en la bandeja -->
+                            <Button Style="{StaticResource IconBtnStyle}" Click="BtnMinimize_Click" Margin="2,0,0,0" Padding="4,3"
+                                    ToolTip="Minimizar (clic en el anillo junto al reloj para volver)">
+                                <TextBlock Text="—" FontSize="10" Foreground="#94A3B8"/>
                             </Button>
 
                             <!-- Close Button -->
@@ -836,8 +843,18 @@
                                                     <TextBlock Text="{Binding ClaudeStatusBadge}" Foreground="#C084FC" FontSize="9.5"/>
                                                 </Border>
                                             </Grid>
-                                            <TextBlock Text="Plan Pro / Max / Team (sin clave)" Foreground="#C084FC" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
-                                            <TextBlock Text="Dockus registra un script de statusline en Claude Code. Cada vez que Claude Code responde en la terminal, guarda el % usado de la ventana de 5 horas y del límite semanal en %APPDATA%\Dockus\claude-usage.json. No se usan claves ni credenciales." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            <TextBlock Text="Cuenta de claude.ai (recomendado)" Foreground="#C084FC" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Inicia sesión en claude.ai en una ventana de Dockus. Dockus consulta cada 3 minutos el mismo uso que ves en claude.ai → Configuración → Uso (5 horas, semanal y por modelo). Funciona con la app de escritorio, la web o la terminal. La sesión queda solo en este PC; Dockus no ve tu contraseña." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                <Button Content="Iniciar sesión en claude.ai" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnClaudeWebSignIn_Click" Margin="0,0,6,0"/>
+                                                <Button Content="Cerrar sesión" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnClaudeWebSignOut_Click"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding ClaudeWebStatus}" Foreground="#C084FC" FontSize="10" Margin="0,4,0,4" TextWrapping="Wrap"/>
+                                            <CheckBox Content="Mostrar anillo de uso junto al reloj (bandeja)" Foreground="#94A3B8" FontSize="10" Margin="0,0,0,10"
+                                                      IsChecked="{Binding Settings.ShowClaudeTrayIcon}" Checked="ShowTrayIcon_Changed" Unchecked="ShowTrayIcon_Changed"/>
+
+                                            <TextBlock Text="Alternativa: Claude Code en la terminal" Foreground="#C084FC" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Registra un script de statusline en Claude Code. Cada vez que Claude Code responde en la terminal, guarda el % usado de 5 horas y semanal en %APPDATA%\Dockus\claude-usage.json. No funciona con la app de escritorio." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
                                             <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
                                                 <Button Content="Conectar Claude Code" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnConnectClaudeCode_Click" Margin="0,0,6,0"/>
                                                 <Button Content="Desconectar" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnDisconnectClaudeCode_Click"/>

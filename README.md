@@ -38,7 +38,7 @@ Dockus incluye un selector rápido interactivo en la barra (`✦ AGY ▾`, `🐋
 | :--- | :--- | :---: | :--- |
 | **✦ Google Antigravity** | **Local Connect-RPC** | ❌ No | Cuotas oficiales de Gemini Pro/Flash (semanal y 5h), Claude Sonnet/Opus y Gemini 4 Argon directamente del proceso IDE activo. |
 | **🐋 DeepSeek Platform** | **HTTPS REST API** |  Sí | Saldo de crédito restante en USD, disponibilidad de modelos DeepSeek-V3 / DeepSeek-R1 y límites de ventana. |
-| **✻ Anthropic Claude** | **Statusline de Claude Code** (o API REST) | ❌ No (API key opcional) | Límites del plan Pro / Max / Team: % libre de la ventana de 5 horas y del límite semanal, con cuenta regresiva de reinicio. Con API key solo verifica el acceso. |
+| **✻ Anthropic Claude** | **Sesión de claude.ai** (WebView2) o statusline de Claude Code | ❌ No (API key opcional) | Límites del plan Pro / Max / Team: % libre de 5 horas, semanal y por modelo, con cuenta regresiva y anillo junto al reloj. Con API key solo verifica el acceso. |
 | **✦ Google AI Studio** | **HTTPS REST API** |  Sí | Modelos Gemini 1.5, 2.0 Flash/Pro y experimentales con ventana de hasta 1 millón de tokens. |
 | **⚙ OpenAI API** | **HTTPS REST API** |  Sí | Modelos GPT-4o, o1, o3-mini y ventana de contexto de 128,000 tokens. |
 | **🦙 Ollama Local** | **HTTP Local (11434)** | ❌ No | Modelos locales descargados en tu máquina (Llama 3, DeepSeek, Mistral) vía `localhost:11434`. |
@@ -47,7 +47,28 @@ Dockus incluye un selector rápido interactivo en la barra (`✦ AGY ▾`, `🐋
 
 ## ✻ Límites del Plan de Claude sin API Key
 
-Una API key de Anthropic **no** muestra los límites de un plan Pro, Max o Team: la API se factura aparte. La forma documentada de leerlos es la [statusline de Claude Code](https://code.claude.com/docs/en/statusline), que recibe los campos `rate_limits.five_hour` y `rate_limits.seven_day` (porcentaje usado y hora de reinicio).
+Una API key de Anthropic **no** muestra los límites de un plan Pro, Max o Team: la API se factura aparte. Dockus los lee de dos formas, sin claves.
+
+### Opción 1 (recomendada): cuenta de claude.ai
+
+Funciona con la app de escritorio de Claude, la web o la terminal.
+
+1. Abre Dockus → pestaña **`🔌 Claves`** → tarjeta **Anthropic Claude** → **Iniciar sesión en claude.ai**.
+2. Inicia sesión en la ventana que se abre, como siempre. Se cierra sola cuando la sesión queda activa.
+3. Elige **`✻ CLD`** en la barra. Dockus consulta cada 3 minutos el mismo uso de claude.ai → Configuración → Uso: 5 horas, semanal y por modelo.
+
+**Anillo junto al reloj:** Dockus pone en la bandeja de la barra de tareas un anillo que se llena con el **% usado** de la ventana elegida en la barra de Dockus (**⏱ 5h** o **📅 7d**). Colores: azul por debajo de 50 %, naranja de 50 a 79 % y bermellón desde 80 %, que además muestra un punto en el centro para no depender solo del color. Al pasar el mouse muestra ambas ventanas y cuándo se reinician. Clic izquierdo abre Dockus; clic derecho, el menú. El botón **—** de Dockus lo oculta y deja solo el anillo. En Windows 11, los íconos nuevos quedan ocultos en la flecha **^**: para verlo siempre, ve a **Configuración → Personalización → Barra de tareas → Otros íconos de la bandeja** y activa **Dockus**. Se puede apagar con la casilla *Mostrar anillo de uso junto al reloj*.
+
+**Qué tener en cuenta:**
+
+- La sesión vive solo en tu PC, en `%LOCALAPPDATA%\Dockus\ClaudeWebSession` (perfil de WebView2). Para que no se pierda al reiniciar, Dockus guarda además una copia de las cookies de claude.ai en `%LOCALAPPDATA%\Dockus\claude-session.dat`, cifrada con DPAPI: solo tu cuenta de Windows en este PC puede leerla. Dockus nunca ve tu contraseña y las consultas van directo a claude.ai. **Cerrar sesión** borra el perfil y la copia.
+- El registro `%APPDATA%\Dockus\claude-web.log` anota estados HTTP y conteos para diagnosticar, nunca valores de cookies.
+- Usa los servicios internos de claude.ai, que Anthropic no documenta para apps externas. Si cambian, Dockus muestra *formato no reconocido* y guarda la respuesta (solo porcentajes y fechas) en `%APPDATA%\Dockus\claude-web-usage-debug.json` para ajustarlo.
+- Que una app externa use tu sesión de claude.ai es una zona gris de los términos de uso. En cuentas de empresa (Team/Enterprise), consúltalo con el administrador.
+
+### Opción 2: statusline de Claude Code (terminal)
+
+La forma documentada es la [statusline de Claude Code](https://code.claude.com/docs/en/statusline), que recibe los campos `rate_limits.five_hour` y `rate_limits.seven_day` (porcentaje usado y hora de reinicio). Solo se ejecuta en la terminal, no en la app de escritorio.
 
 **Cómo activarlo:**
 

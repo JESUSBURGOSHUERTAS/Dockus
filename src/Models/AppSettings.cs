@@ -26,6 +26,11 @@ public class AppSettings
     public string DeepSeekApiKey { get; set; } = string.Empty;
     public string OllamaBaseUrl { get; set; } = "http://localhost:11434";
 
+    // Claude: sesión de claude.ai iniciada en Dockus (la sesión en sí vive en el perfil de WebView2)
+    public bool ClaudeWebSignedIn { get; set; } = false;
+    // Anillo de uso de Claude en la bandeja de la barra de tareas
+    public bool ShowClaudeTrayIcon { get; set; } = true;
+
     private static readonly string SettingsFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "Dockus",
@@ -81,7 +86,9 @@ public class AppSettings
                 OpenAiApiKey = EncryptSecret(this.OpenAiApiKey),
                 ClaudeApiKey = EncryptSecret(this.ClaudeApiKey),
                 DeepSeekApiKey = EncryptSecret(this.DeepSeekApiKey),
-                OllamaBaseUrl = this.OllamaBaseUrl
+                OllamaBaseUrl = this.OllamaBaseUrl,
+                ClaudeWebSignedIn = this.ClaudeWebSignedIn,
+                ShowClaudeTrayIcon = this.ShowClaudeTrayIcon
             };
 
             var json = JsonSerializer.Serialize(onDisk, new JsonSerializerOptions { WriteIndented = true });

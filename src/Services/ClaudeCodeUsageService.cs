@@ -15,9 +15,19 @@ public class ClaudePlanUsage
 {
     public QuotaBucket? FiveHour { get; set; }
     public QuotaBucket? Weekly { get; set; }
+    /// <summary>Límites semanales por modelo (Opus, Sonnet...) cuando la fuente los reporta.</summary>
+    public List<QuotaBucket> ModelBuckets { get; set; } = new();
     public DateTime UpdatedAt { get; set; }
+    /// <summary>"claude.ai" o "Claude Code".</summary>
+    public string Source { get; set; } = "Claude Code";
 
     public bool HasData => FiveHour != null || Weekly != null;
+
+    /// <summary>La ventana con menos margen (la que se agotaría primero).</summary>
+    public QuotaBucket? TightestBucket =>
+        FiveHour == null ? Weekly
+        : Weekly == null ? FiveHour
+        : (Weekly.RemainingPercentage < FiveHour.RemainingPercentage ? Weekly : FiveHour);
     public TimeSpan Age => DateTime.Now - UpdatedAt;
     public bool IsStale => Age > TimeSpan.FromHours(1);
 
@@ -32,6 +42,12 @@ public class ClaudePlanUsage
             return $"hace {(int)age.TotalDays}d";
         }
     }
+}
+
+/// <summary>Último uso del plan elegido por la ventana principal (claude.ai o Claude Code).</summary>
+public static class ClaudePlanState
+{
+    public static ClaudePlanUsage? Current { get; set; }
 }
 
 public enum ClaudeStatusLineState
@@ -94,22 +110,30 @@ public static class ClaudeCodeUsageService
         if (!root.TryGetProperty(name, out var el) || el.ValueKind != JsonValueKind.Object) return null;
         if (!el.TryGetProperty("used_percentage", out var usedEl)) return null;
 
-        double used;
-        if (usedEl.ValueKind == JsonValueKind.Number) used = usedEl.GetDouble();
-        else if (usedEl.ValueKind == JsonValueKind.String && double.TryParse(usedEl.GetString(),
-                     System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var parsed)) used = parsed;
-        else return null;
+        var used = ReadNumber(usedEl);
+        if (used == null) return null;
+        return MakeBucket(name, window, displayName, used.Value, ReadEpoch(el, "resets_at"));
+    }
 
+    internal static double? ReadNumber(JsonElement el)
+    {
+        if (el.ValueKind == JsonValueKind.Number) return el.GetDouble();
+        if (el.ValueKind == JsonValueKind.String && double.TryParse(el.GetString(),
+                System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var parsed)) return parsed;
+        return null;
+    }
+
+    /// <summary>Crea un bucket a partir del % usado. Si la ventana ya se reinició, el uso vuelve a 0 %.</summary>
+    internal static QuotaBucket MakeBucket(string id, string window, string displayName, double usedPercent, DateTime? resetUtc)
+    {
         var bucket = new QuotaBucket
         {
-            BucketId = name,
+            BucketId = id,
             Window = window,
             DisplayName = displayName,
-            RemainingFraction = Math.Clamp(1.0 - used / 100.0, 0, 1),
-            ResetTime = ReadEpoch(el, "resets_at")
+            RemainingFraction = Math.Clamp(1.0 - usedPercent / 100.0, 0, 1),
+            ResetTime = resetUtc
         };
-
-        // Si la ventana ya se reinició desde la última lectura, el uso vuelve a 0 %.
         if (bucket.ResetTime != null && bucket.ResetTime.Value <= DateTime.UtcNow)
         {
             bucket.RemainingFraction = 1.0;
@@ -119,7 +143,7 @@ public static class ClaudeCodeUsageService
     }
 
     /// <summary>Acepta segundos Unix (número o texto) o una fecha ISO 8601. Devuelve UTC.</summary>
-    private static DateTime? ReadEpoch(JsonElement parent, string name)
+    internal static DateTime? ReadEpoch(JsonElement parent, string name)
     {
         if (!parent.TryGetProperty(name, out var el)) return null;
         try
