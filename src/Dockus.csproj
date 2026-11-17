@@ -9,9 +9,9 @@
     <!-- Solo para NotifyIcon (anillo de uso en la bandeja de la barra de tareas) -->
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>assets\app.ico</ApplicationIcon>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <FileVersion>1.1.0.0</FileVersion>
+    <Version>1.1.1</Version>
+    <AssemblyVersion>1.1.1.0</AssemblyVersion>
+    <FileVersion>1.1.1.0</FileVersion>
     <Authors>JESUSBURGOSHUERTAS</Authors>
     <Description>Dockus - AI Quota &amp; Token Monitor for Windows with Modern Aero Glass</Description>
   </PropertyGroup>

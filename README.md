@@ -16,7 +16,7 @@
   <b>Un monitor de escritorio flotante y translúcido que rastrea tus cuotas y consumo de tokens de IA en tiempo real, diseñado con estética inspirada en Windows 7 Aero Glass, micropartículas ambientales vivas, acople magnético a esquinas y selector multi-proveedor (Antigravity, DeepSeek, Claude, Gemini, OpenAI y Ollama).</b>
 </p>
 
-[🌐 Visitar Sitio Web](https://jesusburgoshuertas.github.io/Dockus/) · [⬇ Descargar v1.1.0](https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest) · [🐞 Reportar un Error](https://github.com/JESUSBURGOSHUERTAS/Dockus/issues)
+[🌐 Visitar Sitio Web](https://jesusburgoshuertas.github.io/Dockus/) · [⬇ Descargar v1.1.1](https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest) · [🐞 Reportar un Error](https://github.com/JESUSBURGOSHUERTAS/Dockus/issues)
 
 </div>
 
@@ -57,7 +57,7 @@ Funciona con la app de escritorio de Claude, la web o la terminal.
 2. Inicia sesión en la ventana que se abre, como siempre. Se cierra sola cuando la sesión queda activa.
 3. Elige **`✻ CLD`** en la barra. Dockus consulta cada 3 minutos el mismo uso de claude.ai → Configuración → Uso: 5 horas, semanal y por modelo.
 
-**Anillo junto al reloj:** Dockus pone en la bandeja de la barra de tareas un anillo que se llena con el **% usado** de la ventana elegida en la barra de Dockus (**⏱ 5h** o **📅 7d**). Colores: azul por debajo de 50 %, naranja de 50 a 79 % y bermellón desde 80 %, que además muestra un punto en el centro para no depender solo del color. Al pasar el mouse muestra ambas ventanas y cuándo se reinician. Clic izquierdo abre Dockus; clic derecho, el menú. El botón **—** de Dockus lo oculta y deja solo el anillo. En Windows 11, los íconos nuevos quedan ocultos en la flecha **^**: para verlo siempre, ve a **Configuración → Personalización → Barra de tareas → Otros íconos de la bandeja** y activa **Dockus**. Se puede apagar con la casilla *Mostrar anillo de uso junto al reloj*.
+**Anillo junto al reloj:** Dockus pone en la bandeja de la barra de tareas un anillo que se llena con el **% usado** de la ventana elegida en la barra de Dockus (**⏱ 5h** o **📅 7d**). Colores: azul por debajo de 50 %, naranja de 50 a 79 % y bermellón desde 80 %, que además muestra un punto en el centro para no depender solo del color. Por defecto, dentro del anillo aparece el % usado como número, como el indicador de batería (casilla *Mostrar el % usado como número dentro del anillo*). Windows no permite que una app escriba texto al lado de su ícono en la bandeja, por eso el número va dentro. Al pasar el mouse muestra ambas ventanas y cuándo se reinician. Clic izquierdo abre Dockus; clic derecho, el menú. El botón **—** de Dockus lo oculta y deja solo el anillo. En Windows 11, los íconos nuevos quedan ocultos en la flecha **^**: para verlo siempre, ve a **Configuración → Personalización → Barra de tareas → Otros íconos de la bandeja** y activa **Dockus**. Se puede apagar con la casilla *Mostrar anillo de uso junto al reloj*.
 
 **Qué tener en cuenta:**
 
@@ -123,7 +123,7 @@ Dockus aplica las mejores prácticas de seguridad de la industria para garantiza
 
 ## 🖥️ Compatibilidad de Sistemas Operativos
 
-- **Windows 10 & 11 (x64):** ✅ **Disponible ahora** (Versión 1.1.0 estable con instalador portable).
+- **Windows 10 & 11 (x64):** ✅ **Disponible ahora** (Versión 1.1.1 estable con instalador portable).
 - **🐧 Linux (Ubuntu, Fedora, Arch, Debian):** 🚀 **Próximamente** (en desarrollo activo con Avalonia UI y .NET nativo para soportar entornos GNOME, KDE y Wayland/X11).
 
 ---
@@ -131,7 +131,7 @@ Dockus aplica las mejores prácticas de seguridad de la industria para garantiza
 ## 🚀 Instalación Rápida (Sin Compilar)
 
 1. Descarga el archivo comprimido desde la sección de [Releases de GitHub](https://github.com/JESUSBURGOSHUERTAS/Dockus/releases/latest):
-   - **`Dockus-v1.1.0-win-x64.zip`**
+   - **`Dockus-v1.1.1-win-x64.zip`**
 2. Descomprime la carpeta en la ubicación que prefieras (ej. `C:\Dockus` o en tus Documentos).
 3. Haz doble clic en **`Iniciar-Dockus.bat`** (o directamente en `Dockus.exe`).
 

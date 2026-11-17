@@ -30,6 +30,8 @@ public class AppSettings
     public bool ClaudeWebSignedIn { get; set; } = false;
     // Anillo de uso de Claude en la bandeja de la barra de tareas
     public bool ShowClaudeTrayIcon { get; set; } = true;
+    // Número del % usado dentro del anillo de la bandeja
+    public bool ShowTrayNumber { get; set; } = true;
 
     private static readonly string SettingsFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -88,7 +90,8 @@ public class AppSettings
                 DeepSeekApiKey = EncryptSecret(this.DeepSeekApiKey),
                 OllamaBaseUrl = this.OllamaBaseUrl,
                 ClaudeWebSignedIn = this.ClaudeWebSignedIn,
-                ShowClaudeTrayIcon = this.ShowClaudeTrayIcon
+                ShowClaudeTrayIcon = this.ShowClaudeTrayIcon,
+                ShowTrayNumber = this.ShowTrayNumber
             };
 
             var json = JsonSerializer.Serialize(onDisk, new JsonSerializerOptions { WriteIndented = true });
