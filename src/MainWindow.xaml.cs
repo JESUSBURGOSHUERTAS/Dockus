@@ -18,6 +18,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 {
     private readonly ProviderManager _providerManager = new();
     private readonly AntigravityQuotaService _quotaService = new();
+    private readonly ClaudeWebUsageService _claudeWeb = new();
+    private ClaudeTrayIcon? _trayIcon;
     private DispatcherTimer? _refreshTimer;
     private int _tickCount = 0;
 
@@ -68,7 +70,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private QuotaBucket? ClaudePlanSecondaryBucket => IsHourlyMode ? ClaudePlan?.Weekly : ClaudePlan?.FiveHour;
 
     private static string BucketLabel(QuotaBucket? b) =>
-        b == null ? "Sin datos" : (b.FormattedCountdown == "Listo" ? "100% Libre" : b.FormattedCountdown);
+        b == null ? "Sin datos" : (b.FormattedCountdown == "Listo" ? "Sin uso" : b.FormattedCountdown);
 
     private string ClaudePlanTooltip
     {
@@ -78,8 +80,10 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             if (p == null) return string.Empty;
             string Line(string name, QuotaBucket? b) => b == null
                 ? $"• {name}: sin datos"
-                : $"• {name}: {b.FormattedRemaining} libre (Reinicia: {b.FormattedCountdown})";
-            return $"PLAN CLAUDE (vía Claude Code)\n{Line("Ventana 5 Horas", p.FiveHour)}\n{Line("Límite Semanal", p.Weekly)}\n• Actualizado {p.FormattedAge}";
+                : $"• {name}: {b.FormattedUsed} usado, {b.FormattedRemaining} libre (Reinicia: {b.FormattedCountdown})";
+            var text = $"PLAN CLAUDE (vía {p.Source})\n{Line("Ventana 5 Horas", p.FiveHour)}\n{Line("Límite Semanal", p.Weekly)}";
+            foreach (var m in p.ModelBuckets) text += "\n" + Line(m.DisplayName, m);
+            return text + $"\n• Actualizado {p.FormattedAge}";
         }
     }
 
@@ -138,6 +142,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsWeeklyMode));
                 NotifyActiveGaugeProperties();
+                UpdateTray();
             }
         }
     }
@@ -219,6 +224,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public string ClaudeStatusBadge => ClaudePlan?.HasData == true
         ? "Plan"
         : (string.IsNullOrWhiteSpace(Settings.ClaudeApiKey) ? "Sin conectar" : "API key");
+
+    private string _claudeWebStatus = string.Empty;
+    public string ClaudeWebStatus
+    {
+        get => _claudeWebStatus;
+        set { _claudeWebStatus = value; OnPropertyChanged(); }
+    }
 
     private string _claudeCodeStatus = string.Empty;
     public string ClaudeCodeStatus
@@ -342,8 +354,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // ROUTER PROPERTIES FOR THE 3 CIRCULAR GAUGES ON COMPACT BAR
     // Con datos del plan de Claude: Gauge1 = ventana principal (5h o semanal), Gauge2 = la otra, Gauge3 = frescura.
     public string Gauge1Header => HasClaudePlan ? (IsHourlyMode ? "CLAUDE 5H" : "CLAUDE SEM") : Gauge1HeaderDefault;
-    public double Gauge1Percentage => HasClaudePlan ? (ClaudePlanMainBucket?.RemainingPercentage ?? 100.0) : Gauge1PercentageDefault;
-    public string Gauge1ValueText => HasClaudePlan ? (ClaudePlanMainBucket?.FormattedRemaining ?? "n/d") : Gauge1ValueTextDefault;
+    // En Claude el círculo muestra cuánto llevas usado (se llena a medida que gastas).
+    public double Gauge1Percentage => HasClaudePlan ? (ClaudePlanMainBucket?.UsedPercentage ?? 0.0) : Gauge1PercentageDefault;
+    public string Gauge1ValueText => HasClaudePlan ? (ClaudePlanMainBucket?.FormattedUsed ?? "n/d") : Gauge1ValueTextDefault;
     public string Gauge1Label => HasClaudePlan ? BucketLabel(ClaudePlanMainBucket) : Gauge1LabelDefault;
     public string Gauge1Tooltip => HasClaudePlan ? ClaudePlanTooltip : Gauge1TooltipDefault;
 
@@ -410,9 +423,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     // Gauge 2
     public string Gauge2Header => HasClaudePlan ? (IsHourlyMode ? "SEMANA" : "5 HORAS")
         : (Settings.ActiveProviderId == "antigravity_gemini" ? "CLAUDE" : "CONTEXT");
-    public double Gauge2Percentage => HasClaudePlan ? (ClaudePlanSecondaryBucket?.RemainingPercentage ?? 100.0)
+    public double Gauge2Percentage => HasClaudePlan ? (ClaudePlanSecondaryBucket?.UsedPercentage ?? 0.0)
         : (Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudePercentage : 100.0);
-    public string Gauge2ValueText => HasClaudePlan ? (ClaudePlanSecondaryBucket?.FormattedRemaining ?? "n/d") : Gauge2ValueTextDefault;
+    public string Gauge2ValueText => HasClaudePlan ? (ClaudePlanSecondaryBucket?.FormattedUsed ?? "n/d") : Gauge2ValueTextDefault;
     private string Gauge2ValueTextDefault => Settings.ActiveProviderId switch
     {
         "deepseek" => "64k",
@@ -429,7 +442,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public string Gauge2Tooltip => HasClaudePlan ? ClaudePlanTooltip
         : (Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudeTooltip : $"Ventana de contexto máxima: {Gauge2ValueText} tokens");
 
-    // Gauge 3
+    // Gauge 3: solo tiene sentido como ARGON (Antigravity); el círculo ESTADO se oculta.
+    public bool ShowGauge3 => Settings.ActiveProviderId == "antigravity_gemini";
     public string Gauge3Header => Settings.ActiveProviderId == "antigravity_gemini" ? "ARGON" : "ESTADO";
     public double Gauge3Percentage => HasClaudePlan ? (ClaudePlan!.IsStale ? 50.0 : 100.0)
         : (Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonPercentage : (Usage.IsActiveNow ? 100.0 : 0.0));
@@ -441,7 +455,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         ? new SolidColorBrush((Color)ColorConverter.ConvertFromString(ClaudePlan!.IsStale ? "#F59E0B" : "#10B981"))
         : (Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonStroke : new SolidColorBrush((Color)ColorConverter.ConvertFromString(Usage.IsActiveNow ? "#10B981" : "#F43F5E")));
     public string Gauge3Tooltip => HasClaudePlan
-        ? $"Datos tomados de la statusline de Claude Code {ClaudePlan!.FormattedAge}.\nSe actualizan cada vez que Claude Code responde en la terminal."
+        ? (ClaudePlan!.Source == "claude.ai"
+            ? $"Datos de tu sesión de claude.ai, {ClaudePlan.FormattedAge}.\nSe actualizan cada 3 minutos."
+            : $"Datos tomados de la statusline de Claude Code {ClaudePlan.FormattedAge}.\nSe actualizan cada vez que Claude Code responde en la terminal.")
         : (Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonTooltip : $"Estado de la conexión: {Usage.ConversationTitle}");
 
     public void NotifyActiveGaugeProperties()
@@ -499,6 +515,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         OnPropertyChanged(nameof(Gauge2Stroke));
         OnPropertyChanged(nameof(Gauge2Tooltip));
 
+        OnPropertyChanged(nameof(ShowGauge3));
         OnPropertyChanged(nameof(Gauge3Header));
         OnPropertyChanged(nameof(Gauge3Percentage));
         OnPropertyChanged(nameof(Gauge3ValueText));
@@ -509,10 +526,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     public MainWindow()
     {
-        InitializeComponent();
-        DataContext = this;
+        // La configuración se carga ANTES de enlazar la ventana: al aplicar los bindings, las
+        // casillas disparan Checked/ValueChanged y guardan Settings; si aún fueran los valores
+        // por defecto, sobrescribirían la configuración del usuario.
         Settings = AppSettings.Load();
         _isExpanded = Settings.IsExpanded;
+        InitializeComponent();
+        DataContext = this;
         ClaudePlan = ClaudeCodeUsageService.ReadUsage();
         ClaudeCodeStatus = DescribeClaudeStatusLine();
     }
@@ -533,6 +553,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             Topmost = Settings.AlwaysOnTop;
 
             TaskbarDockHelper.SnapToPosition(this, Settings.DockPosition);
+            EnsureTrayIcon();
+            if (Settings.ClaudeWebSignedIn) ClaudeWebStatus = "Sesión de claude.ai guardada. Consultando el uso…";
 
             _refreshTimer = new DispatcherTimer
             {
@@ -564,10 +586,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 }
             }
 
-            if (Settings.ActiveProviderId == "claude")
-            {
-                ClaudePlan = ClaudeCodeUsageService.ReadUsage();
-            }
+            await RefreshClaudePlanAsync(forceRefresh);
 
             var usage = await _providerManager.GetActiveUsageAsync(Settings);
             Usage = usage;
@@ -579,6 +598,112 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             }
         }
         catch { }
+    }
+
+    /// <summary>
+    /// Elige la mejor fuente del plan de Claude: la sesión de claude.ai (si está iniciada)
+    /// o el archivo de la statusline de Claude Code, y actualiza medidores y bandeja.
+    /// </summary>
+    private async Task RefreshClaudePlanAsync(bool force)
+    {
+        ClaudePlanUsage? web = null;
+        if (Settings.ClaudeWebSignedIn)
+        {
+            web = await _claudeWeb.GetUsageAsync(force);
+            if (!string.IsNullOrEmpty(_claudeWeb.LastStatus)) ClaudeWebStatus = _claudeWeb.LastStatus;
+            if (_claudeWeb.SessionExpired)
+            {
+                Settings.ClaudeWebSignedIn = false;
+                Settings.Save();
+            }
+        }
+
+        var fromFile = ClaudeCodeUsageService.ReadUsage();
+        var best = web;
+        if (best == null || (fromFile != null && fromFile.UpdatedAt > best.UpdatedAt.AddMinutes(5)))
+        {
+            best = fromFile ?? web;
+        }
+
+        ClaudePlan = best;
+        ClaudePlanState.Current = best;
+        string? hint = null;
+        if (Settings.ClaudeWebSignedIn)
+            hint = string.IsNullOrEmpty(_claudeWeb.LastStatus) ? "Consultando claude.ai…" : _claudeWeb.LastStatus;
+        else if (_claudeWeb.SessionExpired)
+            hint = "La sesión de claude.ai venció. Vuelve a iniciar sesión en Dockus.";
+        _trayHint = hint;
+        UpdateTray();
+    }
+
+    private string? _trayHint;
+
+    /// <summary>El anillo sigue el selector ⏱ 5h / 📅 7d de la barra.</summary>
+    private void UpdateTray() => _trayIcon?.Update(ClaudePlan, _trayHint, showWeekly: !IsHourlyMode);
+
+    private void EnsureTrayIcon()
+    {
+        if (Settings.ShowClaudeTrayIcon && _trayIcon == null)
+        {
+            _trayIcon = new ClaudeTrayIcon();
+            _trayIcon.ShowRequested += () => Dispatcher.Invoke(() =>
+            {
+                if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+                Show();
+                Activate();
+            });
+            _trayIcon.RefreshRequested += () => Dispatcher.InvokeAsync(() => RefreshDataAsync(forceRefresh: true, updateQuota: true));
+            _trayIcon.ExitRequested += () => Dispatcher.Invoke(Close);
+            UpdateTray();
+        }
+        else if (!Settings.ShowClaudeTrayIcon && _trayIcon != null)
+        {
+            _trayIcon.Dispose();
+            _trayIcon = null;
+        }
+    }
+
+    private async void BtnClaudeWebSignIn_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            ClaudeWebStatus = "Abriendo claude.ai…";
+            var login = new ClaudeLoginWindow(_claudeWeb) { Owner = this };
+            if (login.ShowDialog() == true)
+            {
+                Settings.ClaudeWebSignedIn = true;
+                Settings.Save();
+                _claudeWeb.ResetThrottle();
+                ClaudeWebStatus = "✓ Sesión iniciada. Consultando el uso…";
+                await RefreshClaudePlanAsync(force: true);
+            }
+            else
+            {
+                ClaudeWebStatus = Settings.ClaudeWebSignedIn ? _claudeWeb.LastStatus : "No se inició sesión.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ClaudeWebStatus = "✗ No se pudo abrir la ventana de claude.ai: " + ex.Message;
+        }
+        NotifyProviderChanged();
+    }
+
+    private async void BtnClaudeWebSignOut_Click(object sender, RoutedEventArgs e)
+    {
+        await _claudeWeb.SignOutAsync();
+        Settings.ClaudeWebSignedIn = false;
+        Settings.Save();
+        ClaudeWebStatus = _claudeWeb.LastStatus;
+        await RefreshClaudePlanAsync(force: false);
+        NotifyProviderChanged();
+    }
+
+    private void ShowTrayIcon_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!IsLoaded) return; // evento disparado por el binding inicial, no por el usuario
+        Settings.Save();
+        EnsureTrayIcon();
     }
 
     private void AdjustPositionAfterResize()
@@ -778,6 +903,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
 
     private void AlwaysOnTop_Changed(object sender, RoutedEventArgs e)
     {
+        if (!IsLoaded) return; // evento disparado por el binding inicial, no por el usuario
         Topmost = Settings.AlwaysOnTop;
         Settings.Save();
     }
@@ -802,6 +928,13 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    private void BtnMinimize_Click(object sender, RoutedEventArgs e)
+    {
+        // Con el anillo en la bandeja, Dockus se oculta por completo (también de la barra de tareas).
+        if (_trayIcon != null) Hide();
+        else WindowState = WindowState.Minimized;
+    }
+
     private void BtnClose_Click(object sender, RoutedEventArgs e)
     {
         Close();
@@ -810,6 +943,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     protected override void OnClosed(EventArgs e)
     {
         _refreshTimer?.Stop();
+        _trayIcon?.Dispose();
+        _trayIcon = null;
+        _claudeWeb.Dispose();
         base.OnClosed(e);
     }
 

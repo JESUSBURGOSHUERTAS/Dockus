@@ -180,7 +180,7 @@ public class ClaudeProvider : ITokenProvider
     public string AccentColorHex => "#C084FC"; // Purple/amber
 
     public bool IsConfigured(AppSettings settings) =>
-        !string.IsNullOrWhiteSpace(settings.ClaudeApiKey) || ClaudeCodeUsageService.ReadUsage() != null;
+        !string.IsNullOrWhiteSpace(settings.ClaudeApiKey) || settings.ClaudeWebSignedIn || ClaudeCodeUsageService.ReadUsage() != null;
 
     public async Task<ConnectionTestResult> TestConnectionAsync(string apiKey)
     {
@@ -230,19 +230,19 @@ public class ClaudeProvider : ITokenProvider
             MaxContextTokens = 200_000
         };
 
-        // Prioridad: límites del plan escritos por la statusline de Claude Code (sin API key).
-        var plan = ClaudeCodeUsageService.ReadUsage();
+        // Prioridad: límites del plan (sesión de claude.ai o statusline de Claude Code), sin API key.
+        var plan = ClaudePlanState.Current ?? ClaudeCodeUsageService.ReadUsage();
         if (plan != null)
         {
             snapshot.IsActiveNow = true;
             snapshot.LastActivityTime = plan.UpdatedAt;
-            snapshot.ConversationTitle = $"Plan Claude · datos de Claude Code {plan.FormattedAge}";
+            snapshot.ConversationTitle = $"Plan Claude · datos de {plan.Source} {plan.FormattedAge}";
             return snapshot;
         }
 
         if (string.IsNullOrWhiteSpace(settings.ClaudeApiKey))
         {
-            snapshot.ConversationTitle = "Conecta Claude Code (sin clave) o agrega una API key en Claves";
+            snapshot.ConversationTitle = "Inicia sesión en claude.ai (sin clave) o agrega una API key en Claves";
             return snapshot;
         }
 
