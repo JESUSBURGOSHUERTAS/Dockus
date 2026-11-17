@@ -20,6 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Script de statusline de Claude Code; Dockus lo copia a %APPDATA%\Dockus al conectar -->
+    <EmbeddedResource Include="..\scripts\dockus-statusline.ps1" LogicalName="Dockus.scripts.dockus-statusline.ps1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
   </ItemGroup>
 

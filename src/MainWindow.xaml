@@ -405,8 +405,8 @@
                                         </Grid.ColumnDefinitions>
                                         <TextBlock Grid.Column="0" Text="✻" Foreground="#C084FC" FontSize="13" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
-                                            <TextBlock Text="Anthropic Claude API" Foreground="#F8FAFC" FontSize="11" FontWeight="SemiBold"/>
-                                            <TextBlock Text="Claude 3.5 / 3.7 Sonnet y Opus" Foreground="#64748B" FontSize="9.5"/>
+                                            <TextBlock Text="Anthropic Claude" Foreground="#F8FAFC" FontSize="11" FontWeight="SemiBold"/>
+                                            <TextBlock Text="Límites del plan vía Claude Code (5h y semanal)" Foreground="#64748B" FontSize="9.5"/>
                                         </StackPanel>
                                         <Border Grid.Column="2" Background="#20C084FC" CornerRadius="4" Padding="5,2" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding ClaudeStatusBadge}" Foreground="#C084FC" FontSize="9" FontWeight="Bold"/>
@@ -830,15 +830,23 @@
                                             <Grid Margin="0,0,0,6">
                                                 <StackPanel Orientation="Horizontal">
                                                     <TextBlock Text="✻" Foreground="#C084FC" FontWeight="Bold" FontSize="13" Margin="0,0,6,0"/>
-                                                    <TextBlock Text="Anthropic Claude API" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12"/>
+                                                    <TextBlock Text="Anthropic Claude" Foreground="#F8FAFC" FontWeight="Bold" FontSize="12"/>
                                                 </StackPanel>
                                                 <Border Background="#20C084FC" CornerRadius="4" Padding="5,2" HorizontalAlignment="Right">
-                                                    <TextBlock Text="console.anthropic.com" Foreground="#C084FC" FontSize="9.5"/>
+                                                    <TextBlock Text="{Binding ClaudeStatusBadge}" Foreground="#C084FC" FontSize="9.5"/>
                                                 </Border>
                                             </Grid>
-                                            <TextBlock Text="¿Cómo se conecta?" Foreground="#C084FC" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
-                                            <TextBlock Text="Se conecta a https://api.anthropic.com/v1/models con el encabezado x-api-key para verificar tu cuenta y disponibilidad de modelos Claude 3.5 y 3.7 Sonnet." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
-                                            
+                                            <TextBlock Text="Plan Pro / Max / Team (sin clave)" Foreground="#C084FC" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Dockus registra un script de statusline en Claude Code. Cada vez que Claude Code responde en la terminal, guarda el % usado de la ventana de 5 horas y del límite semanal en %APPDATA%\Dockus\claude-usage.json. No se usan claves ni credenciales." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                <Button Content="Conectar Claude Code" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnConnectClaudeCode_Click" Margin="0,0,6,0"/>
+                                                <Button Content="Desconectar" Style="{StaticResource GlassBtnStyle}" Padding="7,4" Click="BtnDisconnectClaudeCode_Click"/>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding ClaudeCodeStatus}" Foreground="#C084FC" FontSize="10" Margin="0,4,0,8" TextWrapping="Wrap"/>
+
+                                            <TextBlock Text="API de Anthropic (opcional)" Foreground="#C084FC" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
+                                            <TextBlock Text="Con una API key solo se verifica el acceso (https://api.anthropic.com/v1/models). La API se factura aparte y no muestra los límites del plan." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
+
                                             <TextBlock Text="API Key de Anthropic (sk-ant-...):" Foreground="#94A3B8" FontSize="10" Margin="0,0,0,3"/>
                                             <TextBox Style="{StaticResource GlassTextBoxStyle}" Text="{Binding Settings.ClaudeApiKey, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
                                             

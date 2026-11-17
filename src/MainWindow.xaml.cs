@@ -49,6 +49,40 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
+    // Límites del plan de Claude leídos de la statusline de Claude Code (null si no hay datos)
+    private ClaudePlanUsage? _claudePlan;
+    public ClaudePlanUsage? ClaudePlan
+    {
+        get => _claudePlan;
+        set
+        {
+            _claudePlan = value;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(ClaudeStatusBadge));
+            NotifyActiveGaugeProperties();
+        }
+    }
+
+    private bool HasClaudePlan => Settings.ActiveProviderId == "claude" && ClaudePlan?.HasData == true;
+    private QuotaBucket? ClaudePlanMainBucket => IsHourlyMode ? ClaudePlan?.FiveHour : ClaudePlan?.Weekly;
+    private QuotaBucket? ClaudePlanSecondaryBucket => IsHourlyMode ? ClaudePlan?.Weekly : ClaudePlan?.FiveHour;
+
+    private static string BucketLabel(QuotaBucket? b) =>
+        b == null ? "Sin datos" : (b.FormattedCountdown == "Listo" ? "100% Libre" : b.FormattedCountdown);
+
+    private string ClaudePlanTooltip
+    {
+        get
+        {
+            var p = ClaudePlan;
+            if (p == null) return string.Empty;
+            string Line(string name, QuotaBucket? b) => b == null
+                ? $"• {name}: sin datos"
+                : $"• {name}: {b.FormattedRemaining} libre (Reinicia: {b.FormattedCountdown})";
+            return $"PLAN CLAUDE (vía Claude Code)\n{Line("Ventana 5 Horas", p.FiveHour)}\n{Line("Límite Semanal", p.Weekly)}\n• Actualizado {p.FormattedAge}";
+        }
+    }
+
     private AppSettings _settings = new();
     public AppSettings Settings
     {
@@ -174,7 +208,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         "antigravity_gemini" => "Google Antigravity (IDE Local)",
         "deepseek" => "DeepSeek Platform (V3 / R1)",
-        "claude" => "Anthropic Claude API",
+        "claude" => "Anthropic Claude (Plan / API)",
         "gemini_api" => "Google AI Studio API",
         "openai" => "OpenAI API (GPT-4o)",
         "ollama" => "Ollama (Servidor Local)",
@@ -182,7 +216,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     };
 
     public string DeepSeekStatusBadge => string.IsNullOrWhiteSpace(Settings.DeepSeekApiKey) ? "Sin clave" : "Configurado";
-    public string ClaudeStatusBadge => string.IsNullOrWhiteSpace(Settings.ClaudeApiKey) ? "Sin clave" : "Configurado";
+    public string ClaudeStatusBadge => ClaudePlan?.HasData == true
+        ? "Plan"
+        : (string.IsNullOrWhiteSpace(Settings.ClaudeApiKey) ? "Sin conectar" : "API key");
+
+    private string _claudeCodeStatus = string.Empty;
+    public string ClaudeCodeStatus
+    {
+        get => _claudeCodeStatus;
+        set { _claudeCodeStatus = value; OnPropertyChanged(); }
+    }
     public string GeminiStatusBadge => string.IsNullOrWhiteSpace(Settings.GeminiApiKey) ? "Sin clave" : "Configurado";
     public string OpenAiStatusBadge => string.IsNullOrWhiteSpace(Settings.OpenAiApiKey) ? "Sin clave" : "Configurado";
     public string OllamaStatusBadge => "Local";
@@ -297,7 +340,14 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     public string ActiveWindowBadgeText => IsHourlyMode ? $"⏱ {GeminiFiveHourCountdown}" : $"📅 {GeminiWeeklyCountdown}";
 
     // ROUTER PROPERTIES FOR THE 3 CIRCULAR GAUGES ON COMPACT BAR
-    public string Gauge1Header => Settings.ActiveProviderId switch
+    // Con datos del plan de Claude: Gauge1 = ventana principal (5h o semanal), Gauge2 = la otra, Gauge3 = frescura.
+    public string Gauge1Header => HasClaudePlan ? (IsHourlyMode ? "CLAUDE 5H" : "CLAUDE SEM") : Gauge1HeaderDefault;
+    public double Gauge1Percentage => HasClaudePlan ? (ClaudePlanMainBucket?.RemainingPercentage ?? 100.0) : Gauge1PercentageDefault;
+    public string Gauge1ValueText => HasClaudePlan ? (ClaudePlanMainBucket?.FormattedRemaining ?? "n/d") : Gauge1ValueTextDefault;
+    public string Gauge1Label => HasClaudePlan ? BucketLabel(ClaudePlanMainBucket) : Gauge1LabelDefault;
+    public string Gauge1Tooltip => HasClaudePlan ? ClaudePlanTooltip : Gauge1TooltipDefault;
+
+    private string Gauge1HeaderDefault => Settings.ActiveProviderId switch
     {
         "deepseek" => "DEEPSEEK",
         "claude" => "CLAUDE",
@@ -307,7 +357,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _ => "GEMINI"
     };
 
-    public double Gauge1Percentage => Settings.ActiveProviderId switch
+    private double Gauge1PercentageDefault => Settings.ActiveProviderId switch
     {
         "deepseek" => 100.0,
         "claude" => 100.0,
@@ -317,7 +367,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _ => MainGeminiPercentage
     };
 
-    public string Gauge1ValueText => Settings.ActiveProviderId switch
+    private string Gauge1ValueTextDefault => Settings.ActiveProviderId switch
     {
         "deepseek" => (Usage.IsActiveNow ? "100%" : "Off"),
         "claude" => (Usage.IsActiveNow ? "100%" : "Off"),
@@ -327,7 +377,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _ => MainGeminiValueText
     };
 
-    public string Gauge1Label => Settings.ActiveProviderId switch
+    private string Gauge1LabelDefault => Settings.ActiveProviderId switch
     {
         "deepseek" => "V3 / R1",
         "claude" => "Sonnet",
@@ -347,7 +397,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _ => MainGeminiStroke
     };
 
-    public string Gauge1Tooltip => Settings.ActiveProviderId switch
+    private string Gauge1TooltipDefault => Settings.ActiveProviderId switch
     {
         "deepseek" => $"DEEPSEEK V3 / R1\n• Estado: {Usage.ConversationTitle}",
         "claude" => $"ANTHROPIC CLAUDE\n• Estado: {Usage.ConversationTitle}",
@@ -358,9 +408,12 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     };
 
     // Gauge 2
-    public string Gauge2Header => Settings.ActiveProviderId == "antigravity_gemini" ? "CLAUDE" : "CONTEXT";
-    public double Gauge2Percentage => Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudePercentage : 100.0;
-    public string Gauge2ValueText => Settings.ActiveProviderId switch
+    public string Gauge2Header => HasClaudePlan ? (IsHourlyMode ? "SEMANA" : "5 HORAS")
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? "CLAUDE" : "CONTEXT");
+    public double Gauge2Percentage => HasClaudePlan ? (ClaudePlanSecondaryBucket?.RemainingPercentage ?? 100.0)
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudePercentage : 100.0);
+    public string Gauge2ValueText => HasClaudePlan ? (ClaudePlanSecondaryBucket?.FormattedRemaining ?? "n/d") : Gauge2ValueTextDefault;
+    private string Gauge2ValueTextDefault => Settings.ActiveProviderId switch
     {
         "deepseek" => "64k",
         "claude" => "200k",
@@ -369,17 +422,27 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         "ollama" => "32k",
         _ => MainClaudeValueText
     };
-    public string Gauge2Label => Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudeLabel : "Tokens";
-    public Brush Gauge2Stroke => Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudeStroke : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#38BDF8"));
-    public string Gauge2Tooltip => Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudeTooltip : $"Ventana de contexto máxima: {Gauge2ValueText} tokens";
+    public string Gauge2Label => HasClaudePlan ? BucketLabel(ClaudePlanSecondaryBucket)
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudeLabel : "Tokens");
+    public Brush Gauge2Stroke => HasClaudePlan ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#A78BFA"))
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudeStroke : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#38BDF8")));
+    public string Gauge2Tooltip => HasClaudePlan ? ClaudePlanTooltip
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? MainClaudeTooltip : $"Ventana de contexto máxima: {Gauge2ValueText} tokens");
 
     // Gauge 3
     public string Gauge3Header => Settings.ActiveProviderId == "antigravity_gemini" ? "ARGON" : "ESTADO";
-    public double Gauge3Percentage => Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonPercentage : (Usage.IsActiveNow ? 100.0 : 0.0);
-    public string Gauge3ValueText => Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonValueText : (Usage.IsActiveNow ? "OK" : "Setup");
-    public string Gauge3Label => Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonLabel : (Usage.IsActiveNow ? "Conectado" : "Sin Clave");
-    public Brush Gauge3Stroke => Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonStroke : new SolidColorBrush((Color)ColorConverter.ConvertFromString(Usage.IsActiveNow ? "#10B981" : "#F43F5E"));
-    public string Gauge3Tooltip => Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonTooltip : $"Estado de la conexión: {Usage.ConversationTitle}";
+    public double Gauge3Percentage => HasClaudePlan ? (ClaudePlan!.IsStale ? 50.0 : 100.0)
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonPercentage : (Usage.IsActiveNow ? 100.0 : 0.0));
+    public string Gauge3ValueText => HasClaudePlan ? "Plan"
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonValueText : (Usage.IsActiveNow ? "OK" : "Setup"));
+    public string Gauge3Label => HasClaudePlan ? ClaudePlan!.FormattedAge
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonLabel : (Usage.IsActiveNow ? "Conectado" : "Sin Clave"));
+    public Brush Gauge3Stroke => HasClaudePlan
+        ? new SolidColorBrush((Color)ColorConverter.ConvertFromString(ClaudePlan!.IsStale ? "#F59E0B" : "#10B981"))
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonStroke : new SolidColorBrush((Color)ColorConverter.ConvertFromString(Usage.IsActiveNow ? "#10B981" : "#F43F5E")));
+    public string Gauge3Tooltip => HasClaudePlan
+        ? $"Datos tomados de la statusline de Claude Code {ClaudePlan!.FormattedAge}.\nSe actualizan cada vez que Claude Code responde en la terminal."
+        : (Settings.ActiveProviderId == "antigravity_gemini" ? MainArgonTooltip : $"Estado de la conexión: {Usage.ConversationTitle}");
 
     public void NotifyActiveGaugeProperties()
     {
@@ -450,7 +513,16 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         DataContext = this;
         Settings = AppSettings.Load();
         _isExpanded = Settings.IsExpanded;
+        ClaudePlan = ClaudeCodeUsageService.ReadUsage();
+        ClaudeCodeStatus = DescribeClaudeStatusLine();
     }
+
+    private static string DescribeClaudeStatusLine() => ClaudeCodeUsageService.GetStatusLineState() switch
+    {
+        ClaudeStatusLineState.InstalledDockus => "✓ Claude Code está conectado a Dockus.",
+        ClaudeStatusLineState.OtherStatusLine => "Claude Code ya tiene otra statusLine; Dockus no la reemplaza (ver README).",
+        _ => "Claude Code no está conectado."
+    };
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
@@ -490,6 +562,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                 {
                     Quotas = q;
                 }
+            }
+
+            if (Settings.ActiveProviderId == "claude")
+            {
+                ClaudePlan = ClaudeCodeUsageService.ReadUsage();
             }
 
             var usage = await _providerManager.GetActiveUsageAsync(Settings);
@@ -636,6 +713,21 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var provider = new ClaudeProvider();
         var res = await provider.TestConnectionAsync(Settings.ClaudeApiKey);
         ClaudeTestStatus = res.Message;
+        NotifyProviderChanged();
+    }
+
+    private void BtnConnectClaudeCode_Click(object sender, RoutedEventArgs e)
+    {
+        var res = ClaudeCodeUsageService.InstallStatusLine();
+        ClaudeCodeStatus = res.Message;
+        ClaudePlan = ClaudeCodeUsageService.ReadUsage();
+        NotifyProviderChanged();
+    }
+
+    private void BtnDisconnectClaudeCode_Click(object sender, RoutedEventArgs e)
+    {
+        var res = ClaudeCodeUsageService.UninstallStatusLine();
+        ClaudeCodeStatus = res.Message;
         NotifyProviderChanged();
     }
 

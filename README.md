@@ -38,10 +38,29 @@ Dockus incluye un selector rápido interactivo en la barra (`✦ AGY ▾`, `🐋
 | :--- | :--- | :---: | :--- |
 | **✦ Google Antigravity** | **Local Connect-RPC** | ❌ No | Cuotas oficiales de Gemini Pro/Flash (semanal y 5h), Claude Sonnet/Opus y Gemini 4 Argon directamente del proceso IDE activo. |
 | **🐋 DeepSeek Platform** | **HTTPS REST API** |  Sí | Saldo de crédito restante en USD, disponibilidad de modelos DeepSeek-V3 / DeepSeek-R1 y límites de ventana. |
-| **✻ Anthropic Claude** | **HTTPS REST API** |  Sí | Disponibilidad de Claude 3.5 y 3.7 Sonnet / Opus y ventana de contexto de hasta 200,000 tokens. |
+| **✻ Anthropic Claude** | **Statusline de Claude Code** (o API REST) | ❌ No (API key opcional) | Límites del plan Pro / Max / Team: % libre de la ventana de 5 horas y del límite semanal, con cuenta regresiva de reinicio. Con API key solo verifica el acceso. |
 | **✦ Google AI Studio** | **HTTPS REST API** |  Sí | Modelos Gemini 1.5, 2.0 Flash/Pro y experimentales con ventana de hasta 1 millón de tokens. |
 | **⚙ OpenAI API** | **HTTPS REST API** |  Sí | Modelos GPT-4o, o1, o3-mini y ventana de contexto de 128,000 tokens. |
 | **🦙 Ollama Local** | **HTTP Local (11434)** | ❌ No | Modelos locales descargados en tu máquina (Llama 3, DeepSeek, Mistral) vía `localhost:11434`. |
+
+---
+
+## ✻ Límites del Plan de Claude sin API Key
+
+Una API key de Anthropic **no** muestra los límites de un plan Pro, Max o Team: la API se factura aparte. La forma documentada de leerlos es la [statusline de Claude Code](https://code.claude.com/docs/en/statusline), que recibe los campos `rate_limits.five_hour` y `rate_limits.seven_day` (porcentaje usado y hora de reinicio).
+
+**Cómo activarlo:**
+
+1. Abre Dockus → pestaña **`🔌 Claves`** → tarjeta **Anthropic Claude** → **Conectar Claude Code**.
+2. Dockus copia [`scripts/dockus-statusline.ps1`](scripts/dockus-statusline.ps1) a `%APPDATA%\Dockus\` y agrega `statusLine` a `%USERPROFILE%\.claude\settings.json` (deja una copia en `settings.json.dockus-backup`).
+3. Usa Claude Code en la terminal (`claude`). Tras la primera respuesta, el script guarda los límites en `%APPDATA%\Dockus\claude-usage.json` y Dockus los muestra al elegir **`✻ CLD`**.
+
+**Qué tener en cuenta:**
+
+- Los datos solo se actualizan mientras Claude Code está en uso en la terminal. Dockus muestra hace cuánto se tomaron (medidor **ESTADO**, en ámbar si tienen más de 1 hora). Si una ventana ya se reinició, se muestra al 100 %.
+- El archivo solo guarda porcentajes y horas de reinicio: nada de credenciales, rutas ni conversaciones.
+- Si ya tienes otra `statusLine`, Dockus no la reemplaza. Puedes llamar a `dockus-statusline.ps1` desde tu propio script pasándole el mismo JSON por stdin.
+- Para quitarlo: botón **Desconectar** (solo borra la `statusLine` si es la de Dockus). Al guardar, Dockus reescribe `settings.json` sin los comentarios que tuviera; el original queda en el respaldo.
 
 ---
 

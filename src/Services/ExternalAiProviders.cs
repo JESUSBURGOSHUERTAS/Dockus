@@ -173,13 +173,14 @@ public class OpenAiProvider : ITokenProvider
 public class ClaudeProvider : ITokenProvider
 {
     public string Id => "claude";
-    public string DisplayName => "Anthropic Claude (3.5 / 3.7 Sonnet & Opus)";
-    public string Description => "Monitoreo de tokens de Anthropic Claude API";
+    public string DisplayName => "Anthropic Claude (Plan vía Claude Code / API)";
+    public string Description => "Límites del plan de Claude vía statusline de Claude Code, o verificación de API key";
     public string IconGlyph => "✻";
     public string ShortCode => "CLD";
     public string AccentColorHex => "#C084FC"; // Purple/amber
 
-    public bool IsConfigured(AppSettings settings) => !string.IsNullOrWhiteSpace(settings.ClaudeApiKey);
+    public bool IsConfigured(AppSettings settings) =>
+        !string.IsNullOrWhiteSpace(settings.ClaudeApiKey) || ClaudeCodeUsageService.ReadUsage() != null;
 
     public async Task<ConnectionTestResult> TestConnectionAsync(string apiKey)
     {
@@ -229,9 +230,19 @@ public class ClaudeProvider : ITokenProvider
             MaxContextTokens = 200_000
         };
 
+        // Prioridad: límites del plan escritos por la statusline de Claude Code (sin API key).
+        var plan = ClaudeCodeUsageService.ReadUsage();
+        if (plan != null)
+        {
+            snapshot.IsActiveNow = true;
+            snapshot.LastActivityTime = plan.UpdatedAt;
+            snapshot.ConversationTitle = $"Plan Claude · datos de Claude Code {plan.FormattedAge}";
+            return snapshot;
+        }
+
         if (string.IsNullOrWhiteSpace(settings.ClaudeApiKey))
         {
-            snapshot.ConversationTitle = "Configura tu API Key de Claude en Proveedores";
+            snapshot.ConversationTitle = "Conecta Claude Code (sin clave) o agrega una API key en Claves";
             return snapshot;
         }
 
