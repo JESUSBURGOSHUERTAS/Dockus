@@ -6,38 +6,55 @@ using Forms = System.Windows.Forms;
 
 namespace Dockus.Services;
 
+/// <summary>Forma del ícono: distingue cada IA sin depender del color.</summary>
+public enum TrayShape
+{
+    Circle,   // Claude
+    Hexagon   // Gemini
+}
+
 /// <summary>
-/// Anillo de uso del plan de Claude en la bandeja de la barra de tareas (junto al reloj).
-/// El anillo se llena con el % USADO de la ventana elegida en Dockus (⏱ 5h o 📅 7d).
-/// Colores:
-/// azul &lt; 50 %, naranja 50-79 %, bermellón ≥ 80 %. Desde 80 % se añade además un punto
-/// en el centro, para que el aviso no dependa solo del color. Gris sin datos.
+/// Indicador de uso en la bandeja de la barra de tareas (junto al reloj), uno por IA.
+/// El contorno (círculo o hexágono) se llena con el % USADO de la ventana elegida en Dockus
+/// (⏱ 5h o 📅 7d). Colores:
+/// azul &lt; 50 %, naranja 50-79 %, bermellón ≥ 80 %. Sin número, desde 80 % se añade un punto
+/// en el centro para que el aviso no dependa solo del color. Gris sin datos.
 /// </summary>
-public sealed class ClaudeTrayIcon : IDisposable
+public sealed class UsageTrayIcon : IDisposable
 {
     private readonly Forms.NotifyIcon _notifyIcon;
+    private readonly string _title;
+    private readonly TrayShape _shape;
+    private readonly string _defaultEmptyHint;
     private IntPtr _currentHandle = IntPtr.Zero;
     private string _lastKey = string.Empty;
 
-    /// <summary>Dibuja el % usado como número dentro del anillo (como el indicador de batería).</summary>
+    /// <summary>Dibuja el % usado como número dentro del contorno (como el indicador de batería).</summary>
     public bool ShowNumber { get; set; } = true;
 
     public event Action? ShowRequested;
     public event Action? RefreshRequested;
     public event Action? ExitRequested;
 
-    public ClaudeTrayIcon()
+    /// <param name="title">Nombre de la IA ("Claude", "Gemini").</param>
+    /// <param name="shape">Forma del contorno.</param>
+    /// <param name="defaultEmptyHint">Texto del tooltip cuando no hay datos.</param>
+    public UsageTrayIcon(string title, TrayShape shape, string defaultEmptyHint)
     {
+        _title = title;
+        _shape = shape;
+        _defaultEmptyHint = defaultEmptyHint;
+
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Mostrar Dockus", null, (s, e) => ShowRequested?.Invoke());
-        menu.Items.Add("Actualizar uso de Claude", null, (s, e) => RefreshRequested?.Invoke());
+        menu.Items.Add($"Actualizar uso de {title}", null, (s, e) => RefreshRequested?.Invoke());
         menu.Items.Add(new Forms.ToolStripSeparator());
         menu.Items.Add("Salir", null, (s, e) => ExitRequested?.Invoke());
 
         _notifyIcon = new Forms.NotifyIcon
         {
             ContextMenuStrip = menu,
-            Text = "Dockus · Claude"
+            Text = $"Dockus · {title}"
         };
         _notifyIcon.MouseClick += (s, e) =>
         {
@@ -61,23 +78,23 @@ public sealed class ClaudeTrayIcon : IDisposable
         if (key != _lastKey)
         {
             _lastKey = key;
-            SetIcon(DrawRing(used, stale, ShowNumber));
+            SetIcon(DrawRing(used, stale, ShowNumber, _shape));
         }
 
         _notifyIcon.Text = Truncate(BuildTooltip(plan, emptyHint, bucket), 127);
     }
 
-    private static string BuildTooltip(ClaudePlanUsage? plan, string? emptyHint, QuotaBucket? ringBucket)
+    private string BuildTooltip(ClaudePlanUsage? plan, string? emptyHint, QuotaBucket? ringBucket)
     {
         if (plan == null || !plan.HasData)
-            return "Dockus · Claude\n" + (emptyHint ?? "Sin datos. Inicia sesión en claude.ai desde Dockus.");
+            return $"Dockus · {_title}\n" + (emptyHint ?? _defaultEmptyHint);
 
         // ● marca la ventana que dibuja el anillo
         string Line(string name, QuotaBucket? b) => b == null
             ? $"  {name}: sin datos"
             : $"{(ReferenceEquals(b, ringBucket) ? "●" : "  ")} {name}: {b.FormattedUsed} usado · reinicia {b.FormattedCountdown}";
 
-        var text = $"Claude · {plan.Source}\n{Line("5 horas", plan.FiveHour)}\n{Line("Semana", plan.Weekly)}";
+        var text = $"{_title} · {plan.Source}\n{Line("5 horas", plan.FiveHour)}\n{Line("Semana", plan.Weekly)}";
         if (plan.IsStale) text += $"\nDatos de {plan.FormattedAge}";
         return text;
     }
@@ -104,7 +121,58 @@ public sealed class ClaudeTrayIcon : IDisposable
         }
     }
 
-    private static IntPtr DrawRing(double? usedPercent, bool stale, bool showNumber, int? sizeOverride = null)
+    /// <summary>Contorno hexagonal (vértice arriba), empezando arriba y en sentido horario.</summary>
+    private static Drawing.Drawing2D.GraphicsPath HexagonPath(Drawing.RectangleF r)
+    {
+        float cx = r.X + r.Width / 2f, cy = r.Y + r.Height / 2f;
+        var pts = new Drawing.PointF[7];
+        for (int i = 0; i <= 6; i++)
+        {
+            double a = (-90 + 60 * i) * Math.PI / 180.0;
+            pts[i] = new Drawing.PointF(cx + r.Width / 2f * (float)Math.Cos(a), cy + r.Height / 2f * (float)Math.Sin(a));
+        }
+        var path = new Drawing.Drawing2D.GraphicsPath();
+        path.AddLines(pts);
+        return path;
+    }
+
+    /// <summary>Dibuja solo la fracción <paramref name="fraction"/> del contorno (barra de progreso).</summary>
+    private static void DrawPartialPath(Drawing.Graphics g, Drawing.Drawing2D.GraphicsPath path, float fraction, Drawing.Pen pen)
+    {
+        using var flat = (Drawing.Drawing2D.GraphicsPath)path.Clone();
+        flat.Flatten(null, 0.1f);
+        var pts = flat.PathPoints;
+        if (pts.Length < 2) return;
+
+        static double Dist(Drawing.PointF a, Drawing.PointF b) =>
+            Math.Sqrt((a.X - b.X) * (a.X - b.X) + (a.Y - b.Y) * (a.Y - b.Y));
+
+        double total = 0;
+        for (int i = 1; i < pts.Length; i++) total += Dist(pts[i - 1], pts[i]);
+        double target = total * Math.Clamp(fraction, 0f, 1f), acc = 0;
+
+        var output = new System.Collections.Generic.List<Drawing.PointF> { pts[0] };
+        for (int i = 1; i < pts.Length && acc < target; i++)
+        {
+            double d = Dist(pts[i - 1], pts[i]);
+            if (acc + d <= target)
+            {
+                output.Add(pts[i]);
+                acc += d;
+            }
+            else
+            {
+                double t = (target - acc) / d;
+                output.Add(new Drawing.PointF(
+                    pts[i - 1].X + (float)t * (pts[i].X - pts[i - 1].X),
+                    pts[i - 1].Y + (float)t * (pts[i].Y - pts[i - 1].Y)));
+                acc = target;
+            }
+        }
+        if (output.Count > 1) g.DrawLines(pen, output.ToArray());
+    }
+
+    private static IntPtr DrawRing(double? usedPercent, bool stale, bool showNumber, TrayShape shape = TrayShape.Circle, int? sizeOverride = null)
     {
         // Tamaño del ícono pequeño según el DPI actual (16 px al 100 %, 20 px al 125 %, 24 px al 150 %).
         int size = sizeOverride ?? Math.Max(16, Forms.SystemInformation.SmallIconSize.Width);
@@ -118,9 +186,21 @@ public sealed class ClaudeTrayIcon : IDisposable
         float inset = stroke / 2f + 0.5f;
         var rect = new Drawing.RectangleF(inset, inset, size - inset * 2, size - inset * 2);
 
-        using (var track = new Drawing.Pen(Drawing.Color.FromArgb(110, 148, 163, 184), stroke))
+        using var hexagon = shape == TrayShape.Hexagon ? HexagonPath(rect) : null;
+
+        // Distinción por silueta, no por color: Gemini es una ficha hexagonal RELLENA y Claude un
+        // anillo HUECO. A 16-20 px, relleno contra hueco se reconoce mucho mejor que el contorno solo.
+        if (hexagon != null)
         {
-            g.DrawEllipse(track, rect);
+            using var fill = new Drawing.SolidBrush(Drawing.Color.FromArgb(255, 51, 65, 85)); // #334155 pizarra
+            g.FillPath(fill, hexagon);
+        }
+
+        // Contorno de fondo bien visible en barra oscura o clara (antes casi no se veía).
+        using (var track = new Drawing.Pen(Drawing.Color.FromArgb(200, 100, 116, 139), stroke) { LineJoin = Drawing.Drawing2D.LineJoin.Round })
+        {
+            if (hexagon != null) g.DrawPath(track, hexagon);
+            else g.DrawEllipse(track, rect);
         }
 
         if (usedPercent != null)
@@ -135,16 +215,23 @@ public sealed class ClaudeTrayIcon : IDisposable
                 using var pen = new Drawing.Pen(color, stroke)
                 {
                     StartCap = Drawing.Drawing2D.LineCap.Round,
-                    EndCap = Drawing.Drawing2D.LineCap.Round
+                    EndCap = Drawing.Drawing2D.LineCap.Round,
+                    LineJoin = Drawing.Drawing2D.LineJoin.Round
                 };
-                if (sweep >= 359.5f) g.DrawEllipse(pen, rect);
+                if (hexagon != null)
+                {
+                    if (sweep >= 359.5f) g.DrawPath(pen, hexagon);
+                    else DrawPartialPath(g, hexagon, (float)(used / 100.0), pen);
+                }
+                else if (sweep >= 359.5f) g.DrawEllipse(pen, rect);
                 else g.DrawArc(pen, rect, -90f, sweep);
             }
 
             if (showNumber)
             {
                 // El número ya avisa por sí solo (no depende del color).
-                DrawCenteredNumber(g, size, stroke, used >= 99.5 ? "100" : used.ToString("0"));
+                // Sobre la ficha rellena el número va siempre claro; en el anillo hueco depende de la barra.
+                DrawCenteredNumber(g, size, stroke, used >= 99.5 ? "100" : used.ToString("0"), forceLight: hexagon != null);
             }
             else if (used >= 80)
             {
@@ -159,10 +246,10 @@ public sealed class ClaudeTrayIcon : IDisposable
     }
 
     /// <summary>Dibuja las cifras lo más grandes posible dentro del anillo, con contraste según la barra.</summary>
-    private static void DrawCenteredNumber(Drawing.Graphics g, int size, float stroke, string text)
+    private static void DrawCenteredNumber(Drawing.Graphics g, int size, float stroke, string text, bool forceLight = false)
     {
         float inner = size - stroke * 2f - 1f;
-        var textColor = TaskbarIsLight() ? Drawing.Color.FromArgb(15, 23, 42) : Drawing.Color.FromArgb(248, 250, 252);
+        var textColor = !forceLight && TaskbarIsLight() ? Drawing.Color.FromArgb(15, 23, 42) : Drawing.Color.FromArgb(248, 250, 252);
         using var family = new Drawing.FontFamily("Segoe UI");
 
         // Se usa una ruta (no DrawString) para medir la tinta real y centrarla al píxel.

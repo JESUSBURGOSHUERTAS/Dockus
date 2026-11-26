@@ -19,7 +19,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private readonly ProviderManager _providerManager = new();
     private readonly AntigravityQuotaService _quotaService = new();
     private readonly ClaudeWebUsageService _claudeWeb = new();
-    private ClaudeTrayIcon? _trayIcon;
+    private UsageTrayIcon? _trayIcon;
     private DispatcherTimer? _refreshTimer;
     private int _tickCount = 0;
 
@@ -577,13 +577,27 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     {
         try
         {
-            if (updateQuota && Settings.ActiveProviderId == "antigravity_gemini")
+            // Antigravity también se consulta si el hexágono de Gemini está en la bandeja.
+            if (updateQuota && (Settings.ActiveProviderId == "antigravity_gemini" || _geminiTrayIcon != null))
             {
                 var q = await _quotaService.FetchQuotaSummaryAsync(forceRefresh);
+                _geminiConnected = q.IsConnected;
                 if (q.Groups.Count > 0)
                 {
                     Quotas = q;
+                    var gemini = q.GeminiGroup;
+                    if (gemini != null && (gemini.FiveHourBucket != null || gemini.WeeklyBucket != null))
+                    {
+                        _geminiPlan = new ClaudePlanUsage
+                        {
+                            FiveHour = gemini.FiveHourBucket,
+                            Weekly = gemini.WeeklyBucket,
+                            Source = "Antigravity",
+                            UpdatedAt = q.LastFetched
+                        };
+                    }
                 }
+                UpdateTray();
             }
 
             await RefreshClaudePlanAsync(forceRefresh);
@@ -639,33 +653,66 @@ public partial class MainWindow : Window, INotifyPropertyChanged
     private string? _trayHint;
 
     /// <summary>El anillo sigue el selector ⏱ 5h / 📅 7d de la barra.</summary>
+    // Gemini (vía Antigravity) en la bandeja: hexágono junto al círculo de Claude
+    private UsageTrayIcon? _geminiTrayIcon;
+    private ClaudePlanUsage? _geminiPlan;
+    private bool _geminiConnected;
+
+    /// <summary>Los íconos siguen el selector ⏱ 5h / 📅 7d de la barra.</summary>
     private void UpdateTray()
     {
-        if (_trayIcon == null) return;
-        _trayIcon.ShowNumber = Settings.ShowTrayNumber;
-        _trayIcon.Update(ClaudePlan, _trayHint, showWeekly: !IsHourlyMode);
+        if (_trayIcon != null)
+        {
+            _trayIcon.ShowNumber = Settings.ShowTrayNumber;
+            _trayIcon.Update(ClaudePlan, _trayHint, showWeekly: !IsHourlyMode);
+        }
+        if (_geminiTrayIcon != null)
+        {
+            _geminiTrayIcon.ShowNumber = Settings.ShowTrayNumber;
+            var hint = _geminiConnected ? null : "Antigravity no está abierto. Ábrelo para ver el uso de Gemini.";
+            _geminiTrayIcon.Update(_geminiPlan, hint, showWeekly: !IsHourlyMode);
+        }
+    }
+
+    private UsageTrayIcon CreateTrayIcon(string title, TrayShape shape, string emptyHint)
+    {
+        var icon = new UsageTrayIcon(title, shape, emptyHint);
+        icon.ShowRequested += () => Dispatcher.Invoke(() =>
+        {
+            if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+            Show();
+            Activate();
+        });
+        icon.RefreshRequested += () => Dispatcher.InvokeAsync(() => RefreshDataAsync(forceRefresh: true, updateQuota: true));
+        icon.ExitRequested += () => Dispatcher.Invoke(Close);
+        return icon;
     }
 
     private void EnsureTrayIcon()
     {
+        // Gemini se crea primero: Windows suele poner a la izquierda el ícono más reciente,
+        // así quedan "Claude | Gemini" de izquierda a derecha... o el usuario los reordena arrastrando.
+        if (Settings.ShowGeminiTrayIcon && _geminiTrayIcon == null)
+        {
+            _geminiTrayIcon = CreateTrayIcon("Gemini", TrayShape.Hexagon, "Sin datos. Abre Antigravity para ver el uso de Gemini.");
+        }
+        else if (!Settings.ShowGeminiTrayIcon && _geminiTrayIcon != null)
+        {
+            _geminiTrayIcon.Dispose();
+            _geminiTrayIcon = null;
+        }
+
         if (Settings.ShowClaudeTrayIcon && _trayIcon == null)
         {
-            _trayIcon = new ClaudeTrayIcon();
-            _trayIcon.ShowRequested += () => Dispatcher.Invoke(() =>
-            {
-                if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
-                Show();
-                Activate();
-            });
-            _trayIcon.RefreshRequested += () => Dispatcher.InvokeAsync(() => RefreshDataAsync(forceRefresh: true, updateQuota: true));
-            _trayIcon.ExitRequested += () => Dispatcher.Invoke(Close);
-            UpdateTray();
+            _trayIcon = CreateTrayIcon("Claude", TrayShape.Circle, "Sin datos. Inicia sesión en claude.ai desde Dockus.");
         }
         else if (!Settings.ShowClaudeTrayIcon && _trayIcon != null)
         {
             _trayIcon.Dispose();
             _trayIcon = null;
         }
+
+        UpdateTray();
     }
 
     private async void BtnClaudeWebSignIn_Click(object sender, RoutedEventArgs e)
@@ -951,6 +998,8 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         _refreshTimer?.Stop();
         _trayIcon?.Dispose();
         _trayIcon = null;
+        _geminiTrayIcon?.Dispose();
+        _geminiTrayIcon = null;
         _claudeWeb.Dispose();
         base.OnClosed(e);
     }

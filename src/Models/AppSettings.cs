@@ -32,6 +32,8 @@ public class AppSettings
     public bool ShowClaudeTrayIcon { get; set; } = true;
     // Número del % usado dentro del anillo de la bandeja
     public bool ShowTrayNumber { get; set; } = true;
+    // Hexágono de uso de Gemini (vía Antigravity) en la bandeja
+    public bool ShowGeminiTrayIcon { get; set; } = true;
 
     private static readonly string SettingsFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -91,7 +93,8 @@ public class AppSettings
                 OllamaBaseUrl = this.OllamaBaseUrl,
                 ClaudeWebSignedIn = this.ClaudeWebSignedIn,
                 ShowClaudeTrayIcon = this.ShowClaudeTrayIcon,
-                ShowTrayNumber = this.ShowTrayNumber
+                ShowTrayNumber = this.ShowTrayNumber,
+                ShowGeminiTrayIcon = this.ShowGeminiTrayIcon
             };
 
             var json = JsonSerializer.Serialize(onDisk, new JsonSerializerOptions { WriteIndented = true });

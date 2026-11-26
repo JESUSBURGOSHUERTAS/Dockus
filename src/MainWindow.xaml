@@ -800,6 +800,8 @@
                                             <TextBlock Text="¿Cómo se conecta?" Foreground="#38BDF8" FontSize="10" FontWeight="SemiBold" Margin="0,0,0,2"/>
                                             <TextBlock Text="Dockus se conecta por HTTP Connect-RPC local en 127.0.0.1 al daemon de lenguaje de Antigravity (~/.gemini/antigravity/daemon). Es 100% privado, no requiere API key y no consume saldo externo." Foreground="#94A3B8" FontSize="9.5" TextWrapping="Wrap" Margin="0,0,0,6"/>
                                             <Button Content="Establecer como Rastreador Activo" Style="{StaticResource GlassBtnStyle}" Padding="8,4" HorizontalAlignment="Left" Click="BtnSelectProvider_Click" Tag="antigravity_gemini"/>
+                                            <CheckBox Content="Mostrar hexágono de uso de Gemini junto al reloj (bandeja)" Foreground="#94A3B8" FontSize="10" Margin="0,8,0,0"
+                                                      IsChecked="{Binding Settings.ShowGeminiTrayIcon}" Checked="ShowTrayIcon_Changed" Unchecked="ShowTrayIcon_Changed"/>
                                         </StackPanel>
                                     </Border>
 
